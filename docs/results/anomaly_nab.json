@@ -1,0 +1,162 @@
+{
+  "results": {
+    "z-score": {
+      "A": {
+        "events_scored": 3,
+        "detected": 2,
+        "recall_ci95": [
+          0.2076549551264879,
+          0.9385096847238394
+        ],
+        "first_alarm_offset_h": [
+          -9.583333333333334,
+          null,
+          -18.25
+        ],
+        "alarm_segments": 15,
+        "false_segments": 6,
+        "false_alarms_per_day": 0.0896219075774078,
+        "alarm_time_fraction": 0.032467195684871115,
+        "chance_mean_detected": 0.527,
+        "p_chance_at_least_observed": 0.075,
+        "threshold": 2.5580251632034576
+      },
+      "B": {
+        "events_scored": 3,
+        "detected": 2,
+        "recall_ci95": [
+          0.2076549551264879,
+          0.9385096847238394
+        ],
+        "first_alarm_offset_h": [
+          -1.75,
+          null,
+          -9.5
+        ],
+        "alarm_segments": 3,
+        "false_segments": 0,
+        "false_alarms_per_day": 0.0,
+        "alarm_time_fraction": 0.02027903117058244,
+        "chance_mean_detected": 0.2575,
+        "p_chance_at_least_observed": 0.0485,
+        "threshold": 3.3619981869489894,
+        "min_run_samples": 1
+      }
+    },
+    "rolling z-score": {
+      "A": {
+        "events_scored": 3,
+        "detected": 3,
+        "recall_ci95": [
+          0.43849391955098227,
+          1.0
+        ],
+        "first_alarm_offset_h": [
+          -21.916666666666668,
+          -10.25,
+          21.333333333333332
+        ],
+        "alarm_segments": 49,
+        "false_segments": 43,
+        "false_alarms_per_day": 0.6422903376380893,
+        "alarm_time_fraction": 0.008142731186141798,
+        "chance_mean_detected": 2.2625,
+        "p_chance_at_least_observed": 0.406,
+        "threshold": 3.8760577186079526
+      },
+      "B": {
+        "events_scored": 3,
+        "detected": 2,
+        "recall_ci95": [
+          0.2076549551264879,
+          0.9385096847238394
+        ],
+        "first_alarm_offset_h": [
+          -1.9166666666666667,
+          null,
+          21.333333333333332
+        ],
+        "alarm_segments": 12,
+        "false_segments": 10,
+        "false_alarms_per_day": 0.14936984596234634,
+        "alarm_time_fraction": 0.0019189876043773663,
+        "chance_mean_detected": 0.9075,
+        "p_chance_at_least_observed": 0.2225,
+        "threshold": 4.87542437530385,
+        "min_run_samples": 1
+      }
+    },
+    "robust z-score (temp)": {
+      "A": {
+        "events_scored": 3,
+        "detected": 2,
+        "recall_ci95": [
+          0.2076549551264879,
+          0.9385096847238394
+        ],
+        "first_alarm_offset_h": [
+          -9.583333333333334,
+          null,
+          -18.25
+        ],
+        "alarm_segments": 15,
+        "false_segments": 6,
+        "false_alarms_per_day": 0.0896219075774078,
+        "alarm_time_fraction": 0.032467195684871115,
+        "chance_mean_detected": 0.527,
+        "p_chance_at_least_observed": 0.075,
+        "threshold": 3.1048868449012663
+      },
+      "B": {
+        "events_scored": 3,
+        "detected": 2,
+        "recall_ci95": [
+          0.2076549551264879,
+          0.9385096847238394
+        ],
+        "first_alarm_offset_h": [
+          -1.25,
+          null,
+          -1.25
+        ],
+        "alarm_segments": 2,
+        "false_segments": 0,
+        "false_alarms_per_day": 0.0,
+        "alarm_time_fraction": 0.0023339038431616616,
+        "chance_mean_detected": 0.2005,
+        "p_chance_at_least_observed": 0.037,
+        "threshold": 4.893188342836072,
+        "min_run_samples": 3
+      }
+    },
+    "isolation forest": {
+      "A": {
+        "events_scored": 3,
+        "detected": 3,
+        "recall_ci95": [
+          0.43849391955098227,
+          1.0
+        ],
+        "first_alarm_offset_h": [
+          -21.333333333333332,
+          -20.166666666666668,
+          -17.666666666666668
+        ],
+        "alarm_segments": 67,
+        "false_segments": 54,
+        "false_alarms_per_day": 0.8065971681966703,
+        "alarm_time_fraction": 0.03884653285617966,
+        "chance_mean_detected": 1.8505,
+        "p_chance_at_least_observed": 0.209,
+        "threshold": 0.6095301438785229
+      }
+    }
+  },
+  "notes": {
+    "rows_raw": 22695,
+    "rows_clean": 22683,
+    "out_of_order_steps": 1,
+    "duplicate_timestamps_dropped": 12,
+    "steps_not_5min_after_cleaning": 0
+  }
+}

@@ -1,6 +1,6 @@
 # Model card: freezer anomaly detection
 
-**Status:** evaluated on SYNTHETIC data only. Real-data check (NAB) is still to do.
+**Status:** evaluated on SYNTHETIC data, plus a small real-data sanity check on NAB (below).
 Full table: [results/anomaly_synthetic.md](../results/anomaly_synthetic.md). Code: `ml/src/coldchain_ml/anomaly/`.
 
 ## Task
@@ -47,6 +47,40 @@ change and never sees power cuts). What differs is **how early** drift is caught
   "compressor off for a long time" differs from a 20-minute defrost. A label-free fix (alarm on
   compressor-off duration) is the obvious next step.
 
+## Real-data sanity check (NAB machine temperature)
+Full table and figure: [results/anomaly_nab.md](../results/anomaly_nab.md),
+[results/nab_machine_temperature.png](../results/nab_machine_temperature.png).
+
+Real 5-minute sensor data from an industrial machine (NAB, 22,683 rows after dropping 12
+duplicate timestamps; MIT licence). **Not a freezer and no compressor signal**, so only the
+temperature-only detectors apply, and only **3** labelled failures are scorable (the first sits
+in NAB's probationary fit period). It is a sanity check, not a benchmark: no detector can be
+ranked on 3 events. The protocol was fixed before running and used no NAB labels: fit on the
+probationary 15%; operating point **A** = 99.5th percentile of the detector's own probationary
+scores; **B** = threshold and debounce tuned on *synthetic* validation data (unit-free z-score
+detectors only).
+
+| Detector (point) | Failures found | Chance level (mean / P>=obs) | False alarms / day |
+|---|---|---|---|
+| robust z-score, synthetic-tuned (B) | 2/3 | 0.20 / 0.04 | 0.00 |
+| z-score (A) | 2/3 | 0.53 / 0.07 | 0.09 |
+| rolling z-score (A) | 3/3 | 2.26 / 0.41 | 0.64 |
+| isolation forest (A) | 3/3 | 1.85 / 0.21 | 0.81 |
+
+- **Chance matters.** Labelled windows are ~47 h wide, so a detector with many false alarms lands in
+  them by luck. Shifting each alarm series randomly shows the rolling z-score and isolation forest
+  "3/3" results are indistinguishable from chance (P = 0.41 and 0.21).
+- **What holds up:** the z-score detectors find the sharp failures (the Dec 16 crash and the Feb 8
+  decline) with almost no false alarms (0.00-0.09/day over 67 days) and miss the subtle Jan 28 one,
+  which resembles the machine's ordinary dips. The synthetic-tuned robust z-score alarmed about 1.2 h
+  before both failures it caught, but 7 configurations x 3 events means a P of 0.04 is suggestive,
+  not proof.
+- **Transfer:** a z-threshold tuned on the simulator carried over to real data without a flood of
+  false alarms. With 3 events that is encouraging, not established.
+- Isolation forest gave no benefit over the simple detectors on real data either.
+- Under operating point A the z-score and robust z-score are near-identical by construction (the
+  quantile rule cancels the scale), so their A rows are not independent evidence.
+
 ## Limitations
 - **Synthetic.** The simulator is mine. Detectors learn its signatures; the compressor-current
   rise under drift is something I built in, so the 12x earlier-detection figure is evidence for
@@ -55,3 +89,5 @@ change and never sees power cuts). What differs is **how early** drift is caught
 - Thresholds are tuned for F1 on one validation history; a site would tune for its own cost of
   a miss vs a false alarm.
 - Each zone is scored independently; no cross-zone context.
+- Real-data evidence is 3 events from a non-freezer machine; the compressor-current finding (the main
+  result) could **not** be checked on real data because no public dataset has it.

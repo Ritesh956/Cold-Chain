@@ -88,15 +88,19 @@ class IsolationForestDetector:
     name = "isolation forest"
     needs_labels = False
 
-    def __init__(self, seed: int = 0) -> None:
+    def __init__(
+        self, seed: int = 0, features: list[str] | None = None, stride: int = 3
+    ) -> None:
+        self.features = features or MODEL_FEATURES
+        self.stride = stride
         self.model = IsolationForest(n_estimators=200, max_samples=4096, random_state=seed, n_jobs=-1)
 
     def fit(self, feats: pd.DataFrame, labels: pd.Series | None = None) -> None:
-        x = feats[MODEL_FEATURES].dropna().iloc[::3]
+        x = feats[self.features].dropna().iloc[:: self.stride]
         self.model.fit(x)
 
     def score(self, feats: pd.DataFrame) -> np.ndarray:
-        x = feats[MODEL_FEATURES]
+        x = feats[self.features]
         ok = x.notna().all(axis=1).to_numpy()
         out = np.full(len(x), np.nan)
         out[ok] = -self.model.score_samples(x[ok])

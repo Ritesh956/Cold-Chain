@@ -76,3 +76,24 @@ def test_wilson_interval_bounds():
     lo, hi = wilson_interval(40, 44)
     assert 0.75 < lo < 0.91 < hi < 0.99
     assert wilson_interval(0, 0) == (0.0, 1.0)
+
+
+def test_five_minute_grid_scales_tolerance_gap_delay_and_days():
+    ts5 = pd.date_range("2025-01-01", periods=600, freq="5min", tz="UTC")
+    ev = pd.DataFrame(
+        [{"type": "x", "start": ts5[100], "end": ts5[120], "is_anomaly": True}]
+    )
+    alarm = np.zeros(600, dtype=bool)
+    alarm[110:114] = True
+    alarm[115:118] = True  # 1-sample (5 min) gap -> merged into one segment
+    m = evaluate_zone(ts5, alarm, ev, tol_min=30, merge_gap=5, step_min=5)
+    assert m.n_segments == 1 and m.n_detected == 1
+    assert m.delays_min["x"] == [50.0]  # 10 samples x 5 min
+    assert m.zone_days == 600 * 5 / 1440
+    # an alarm 5 samples (25 min) after the end is inside the 30-min tolerance
+    late = np.zeros(600, dtype=bool)
+    late[125:127] = True
+    assert evaluate_zone(ts5, late, ev, tol_min=30, step_min=5).n_detected == 1
+    very_late = np.zeros(600, dtype=bool)
+    very_late[130:132] = True  # 50 min after the end
+    assert evaluate_zone(ts5, very_late, ev, tol_min=30, step_min=5).n_detected == 0

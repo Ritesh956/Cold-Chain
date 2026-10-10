@@ -118,20 +118,28 @@ def evaluate_zone(
     tol_min: int = 30,
     merge_gap: int = 5,
     attribute_false: bool = True,
+    step_min: int = 1,
 ) -> EventMetrics:
-    """Score one zone's alarm series. `events` must be this zone's rows only."""
+    """Score one zone's alarm series. `events` must be this zone's rows only.
+
+    `tol_min` / `merge_gap` are in minutes; `step_min` is the sampling interval, so the same
+    definitions work on 1-minute simulator data and on 5-minute real data (NAB).
+    """
     ts = pd.DatetimeIndex(ts)
     n = len(ts)
+    tol = -(-tol_min // step_min)  # ceil, in samples
+    gap = merge_gap // step_min
+    benign_tol = -(-BENIGN_TOL_MIN // step_min)
 
     def pos(t: pd.Timestamp) -> int:
         return int(ts.searchsorted(t))
 
-    m = EventMetrics(zone_days=n / 1440.0)
-    seg_starts, seg_ends = segments(alarm, merge_gap)
+    m = EventMetrics(zone_days=n * step_min / 1440.0)
+    seg_starts, seg_ends = segments(alarm, gap)
     m.n_segments = len(seg_starts)
 
     truth = events[events["is_anomaly"]]
-    windows = [(pos(s), pos(e) + tol_min) for s, e in zip(truth["start"], truth["end"], strict=True)]
+    windows = [(pos(s), pos(e) + tol) for s, e in zip(truth["start"], truth["end"], strict=True)]
     kinds = [str(k) for k in truth["type"]]
 
     for (w0, w1), kind in zip(windows, kinds, strict=True):
@@ -142,11 +150,11 @@ def evaluate_zone(
             m.n_detected += 1
             m.detected_by_type[kind] += 1
             # delay counted from the true start; w0 is that start
-            m.delays_min[kind].append(float(max(0, min(hits) - w0)))
+            m.delays_min[kind].append(float(max(0, min(hits) - w0) * step_min))
 
     benign = events[~events["is_anomaly"]]
     b_windows = [
-        (pos(s), pos(e) + BENIGN_TOL_MIN, str(k))
+        (pos(s), pos(e) + benign_tol, str(k))
         for s, e, k in zip(benign["start"], benign["end"], benign["type"], strict=True)
     ]
 
