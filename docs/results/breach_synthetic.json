@@ -1,0 +1,285 @@
+{
+  "results": {
+    "current temperature (baseline)": {
+      "pr_auc": 0.31094718881990124,
+      "pr_auc_by_seed": {
+        "102": 0.280942633657997,
+        "103": 0.3475073980847256,
+        "104": 0.36086956734668735,
+        "105": 0.2424635942950437
+      },
+      "prevalence": 0.00241377725583301,
+      "episodes": 188,
+      "warned_any": 0.8138297872340425,
+      "warned_5min": 0.6223404255319149,
+      "warned_5min_ci95": [
+        0.5512429279692336,
+        0.6885382248151469
+      ],
+      "warned_10min": 0.48404255319148937,
+      "warned_10min_ci95": [
+        0.4136428196214922,
+        0.5550813778414148
+      ],
+      "precision": 0.3488843813387424,
+      "precision_ci95": [
+        0.30812660094915756,
+        0.39197902627690406
+      ],
+      "false_alarms_per_zone_day": 0.22291666666666668,
+      "median_lead_min": 16.0,
+      "by_cause": {
+        "compressor_drift": {
+          "episodes": 78,
+          "warned_5min": 0.9615384615384616,
+          "warned_10min": 0.782051282051282,
+          "median_lead_min": 32.0
+        },
+        "door_left_open": {
+          "episodes": 71,
+          "warned_5min": 0.056338028169014086,
+          "warned_10min": 0.014084507042253521,
+          "median_lead_min": 3.0
+        },
+        "power_cut": {
+          "episodes": 39,
+          "warned_5min": 0.9743589743589743,
+          "warned_10min": 0.7435897435897436,
+          "median_lead_min": 16.0
+        }
+      },
+      "threshold": -19.052116472793582,
+      "min_run": 3,
+      "val_f1_warned5": 0.4848818031885651
+    },
+    "linear extrapolation (baseline)": {
+      "pr_auc": 0.16695364410866137,
+      "pr_auc_by_seed": {
+        "102": 0.16799828834936534,
+        "103": 0.16184159905932802,
+        "104": 0.14351576941734773,
+        "105": 0.2055475313495818
+      },
+      "prevalence": 0.00241377725583301,
+      "episodes": 188,
+      "warned_any": 0.35638297872340424,
+      "warned_5min": 0.32978723404255317,
+      "warned_5min_ci95": [
+        0.2665799300392324,
+        0.3998115095651078
+      ],
+      "warned_10min": 0.0,
+      "warned_10min_ci95": [
+        1.734723475976807e-18,
+        0.020024853837749476
+      ],
+      "precision": 0.8271604938271605,
+      "precision_ci95": [
+        0.7305366228248568,
+        0.894156923737207
+      ],
+      "false_alarms_per_zone_day": 0.009722222222222222,
+      "median_lead_min": 7.0,
+      "by_cause": {
+        "compressor_drift": {
+          "episodes": 78,
+          "warned_5min": 0.0,
+          "warned_10min": 0.0,
+          "median_lead_min": null
+        },
+        "door_left_open": {
+          "episodes": 71,
+          "warned_5min": 0.8732394366197183,
+          "warned_10min": 0.0,
+          "median_lead_min": 7.0
+        },
+        "power_cut": {
+          "episodes": 39,
+          "warned_5min": 0.0,
+          "warned_10min": 0.0,
+          "median_lead_min": null
+        }
+      },
+      "threshold": -13.032808588760613,
+      "min_run": 3,
+      "val_f1_warned5": 0.48648648648648646
+    },
+    "lightgbm (1 training history)": {
+      "pr_auc": 0.44693435459412967,
+      "pr_auc_by_seed": {
+        "102": 0.462624302089684,
+        "103": 0.4490400871460476,
+        "104": 0.45111004926879,
+        "105": 0.43475319615224034
+      },
+      "prevalence": 0.00241377725583301,
+      "episodes": 188,
+      "warned_any": 0.648936170212766,
+      "warned_5min": 0.648936170212766,
+      "warned_5min_ci95": [
+        0.5783451853955089,
+        0.7135623049506933
+      ],
+      "warned_10min": 0.5,
+      "warned_10min_ci95": [
+        0.42924539972950615,
+        0.5707546002704939
+      ],
+      "precision": 0.6682692307692307,
+      "precision_ci95": [
+        0.6017400492797103,
+        0.7286955214486075
+      ],
+      "false_alarms_per_zone_day": 0.04791666666666667,
+      "median_lead_min": 13.0,
+      "by_cause": {
+        "compressor_drift": {
+          "episodes": 78,
+          "warned_5min": 0.3974358974358974,
+          "warned_10min": 0.3717948717948718,
+          "median_lead_min": 30.0
+        },
+        "door_left_open": {
+          "episodes": 71,
+          "warned_5min": 0.7746478873239436,
+          "warned_10min": 0.43661971830985913,
+          "median_lead_min": 10.0
+        },
+        "power_cut": {
+          "episodes": 39,
+          "warned_5min": 0.9230769230769231,
+          "warned_10min": 0.8717948717948718,
+          "median_lead_min": 26.5
+        }
+      },
+      "threshold": 0.3294492980411145,
+      "min_run": 5,
+      "val_f1_warned5": 0.7475409836065574
+    },
+    "lightgbm (3 training histories)": {
+      "pr_auc": 0.5333826433163391,
+      "pr_auc_by_seed": {
+        "102": 0.53400855846231,
+        "103": 0.5338209206833069,
+        "104": 0.5061179607908023,
+        "105": 0.562079124953125
+      },
+      "prevalence": 0.00241377725583301,
+      "episodes": 188,
+      "warned_any": 0.6702127659574468,
+      "warned_5min": 0.6702127659574468,
+      "warned_5min_ci95": [
+        0.6001884904348922,
+        0.7334200699607676
+      ],
+      "warned_10min": 0.5585106382978723,
+      "warned_10min_ci95": [
+        0.4870607294498094,
+        0.6276172131861985
+      ],
+      "precision": 0.7965116279069767,
+      "precision_ci95": [
+        0.7301761542002929,
+        0.8498913611089398
+      ],
+      "false_alarms_per_zone_day": 0.024305555555555556,
+      "median_lead_min": 13.0,
+      "by_cause": {
+        "compressor_drift": {
+          "episodes": 78,
+          "warned_5min": 0.41025641025641024,
+          "warned_10min": 0.3333333333333333,
+          "median_lead_min": 22.5
+        },
+        "door_left_open": {
+          "episodes": 71,
+          "warned_5min": 0.8732394366197183,
+          "warned_10min": 0.6901408450704225,
+          "median_lead_min": 11.0
+        },
+        "power_cut": {
+          "episodes": 39,
+          "warned_5min": 0.8205128205128205,
+          "warned_10min": 0.7692307692307693,
+          "median_lead_min": 25.5
+        }
+      },
+      "threshold": 0.4853060473351078,
+      "min_run": 5,
+      "val_f1_warned5": 0.8359332974717589
+    },
+    "lightgbm (6 training histories)": {
+      "pr_auc": 0.5711651116681952,
+      "pr_auc_by_seed": {
+        "102": 0.5289035789970951,
+        "103": 0.6185886430105647,
+        "104": 0.5692298087324758,
+        "105": 0.5749786384032783
+      },
+      "prevalence": 0.00241377725583301,
+      "episodes": 188,
+      "warned_any": 0.7553191489361702,
+      "warned_5min": 0.723404255319149,
+      "warned_5min_ci95": [
+        0.6554735675216847,
+        0.7823876679976187
+      ],
+      "warned_10min": 0.601063829787234,
+      "warned_10min_ci95": [
+        0.529716327022195,
+        0.668363755712728
+      ],
+      "precision": 0.8056872037914692,
+      "precision_ci95": [
+        0.7470304359966516,
+        0.8534119364302898
+      ],
+      "false_alarms_per_zone_day": 0.02847222222222222,
+      "median_lead_min": 12.0,
+      "by_cause": {
+        "compressor_drift": {
+          "episodes": 78,
+          "warned_5min": 0.4230769230769231,
+          "warned_10min": 0.38461538461538464,
+          "median_lead_min": 26.5
+        },
+        "door_left_open": {
+          "episodes": 71,
+          "warned_5min": 0.9295774647887324,
+          "warned_10min": 0.7323943661971831,
+          "median_lead_min": 11.0
+        },
+        "power_cut": {
+          "episodes": 39,
+          "warned_5min": 0.9487179487179487,
+          "warned_10min": 0.7948717948717948,
+          "median_lead_min": 23.0
+        }
+      },
+      "threshold": 0.6124431607679333,
+      "min_run": 3,
+      "val_f1_warned5": 0.8960749330954504
+    }
+  },
+  "lightgbm_gain_importance": {
+    "temp": 0.36426513627451823,
+    "slope_30": 0.11067962836514655,
+    "gap_c": 0.08078358515572866,
+    "d5": 0.07292770984087284,
+    "on_run": 0.05750498089094726,
+    "duty_1440": 0.039170433750971706,
+    "rmean_60": 0.039088023995048654,
+    "duty_360": 0.03869608708084676,
+    "off_run": 0.03277622747653917,
+    "cur_on_360": 0.029754462643811076,
+    "rstd_15": 0.027959668025130457,
+    "temp_rmean_360": 0.02591414545470466,
+    "rmax_60": 0.024350060905273654,
+    "duty_60": 0.02181665349894881,
+    "rmin_15": 0.012146514869913387,
+    "rmax_15": 0.009068551359492806,
+    "slope_5": 0.006324922424078577,
+    "rmean_15": 0.004804549658130525,
+    "slope_15": 0.0019686583298962083
+  }
+}

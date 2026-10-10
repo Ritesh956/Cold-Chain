@@ -42,5 +42,6 @@ Every row has a baseline, a stated split and a model card. Rows are added as mod
 | Task | Data | Baseline | Best simple method | Key result (test) | Card |
 |---|---|---|---|---|---|
 | Freezer anomaly detection | **Synthetic** (176 test events) | z-score: event-F1 0.93, drift caught after ~3 days | Robust z-score on temperature + compressor current | Same F1 (0.92), but drift caught in **~6 h (12x earlier)**. Isolation forest did not beat it. | [card](docs/model-cards/anomaly.md) |
+| Breach early warning (-18 C within 30 min) | **Synthetic** (188 test breaches) | Current-temperature threshold: PR-AUC 0.31, warned >=5 min 0.62, 0.22 false alarms/zone-day | LightGBM, regularised, 6 training histories | PR-AUC **0.57**, warned >=5 min **0.72**, **0.03** false alarms/zone-day. Misses most drift breaches (0.42 vs 0.96 for the threshold). | [card](docs/model-cards/breach.md) |
 
 _Synthetic-data results measure fit to my simulator, not real-world performance._
