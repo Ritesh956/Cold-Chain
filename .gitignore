@@ -1,0 +1,25 @@
+# data & artefacts (never commit datasets or model weights)
+data/*
+!data/README.md
+*.onnx
+*.pt
+*.parquet
+mlruns/
+mlartifacts/
+runs/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# node
+node_modules/
+.next/
+
+# env & os
+.env
+.DS_Store

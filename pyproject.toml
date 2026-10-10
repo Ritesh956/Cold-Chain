@@ -1,0 +1,31 @@
+[project]
+name = "coldchain-ai"
+version = "0.1.0"
+description = "ColdChain AI: AI control tower for an automated cold store (workspace root)"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "pandas-stubs"]
+
+[tool.uv.workspace]
+members = ["libs/*", "services/simulator"]
+
+[tool.uv.sources]
+coldchain-schemas = { workspace = true }
+coldchain-simulator = { workspace = true }
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["services", "libs", "ml", "tests"]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
