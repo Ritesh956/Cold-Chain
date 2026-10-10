@@ -9,11 +9,12 @@ dependencies = []
 dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "pandas-stubs"]
 
 [tool.uv.workspace]
-members = ["libs/*", "services/simulator"]
+members = ["libs/*", "services/simulator", "ml"]
 
 [tool.uv.sources]
 coldchain-schemas = { workspace = true }
 coldchain-simulator = { workspace = true }
+coldchain-ml = { workspace = true }
 
 [tool.ruff]
 line-length = 110

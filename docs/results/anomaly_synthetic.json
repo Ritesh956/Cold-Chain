@@ -1,0 +1,231 @@
+{
+  "z-score (baseline)": {
+    "events": 176,
+    "recall": 0.9261363636363636,
+    "recall_ci95": [
+      0.8777383683888433,
+      0.9563289441795502
+    ],
+    "precision": 0.9333333333333333,
+    "precision_ci95": [
+      0.9002384220073634,
+      0.9559861108014045
+    ],
+    "f1": 0.9297209207577919,
+    "false_alarms_per_zone_day": 0.014583333333333334,
+    "median_delay_min": 42.0,
+    "recall_by_type": {
+      "power_cut": 0.796875,
+      "door_left_open": 1.0,
+      "compressor_drift": 1.0
+    },
+    "events_by_type": {
+      "power_cut": 64,
+      "door_left_open": 80,
+      "compressor_drift": 32
+    },
+    "median_delay_by_type_min": {
+      "power_cut": 76.0,
+      "door_left_open": 10.0,
+      "compressor_drift": 4257.0
+    },
+    "false_alarms_by_cause": {
+      "routine_door": 5,
+      "defrost": 16
+    },
+    "threshold": 3.3619981869489894,
+    "min_run": 1,
+    "val_f1": 0.9325751421608447
+  },
+  "rolling z-score (baseline)": {
+    "events": 176,
+    "recall": 0.4659090909090909,
+    "recall_ci95": [
+      0.39372667923340077,
+      0.5395479357611276
+    ],
+    "precision": 0.90625,
+    "precision_ci95": [
+      0.8313450206379773,
+      0.9498924595306097
+    ],
+    "f1": 0.615424430641822,
+    "false_alarms_per_zone_day": 0.00625,
+    "median_delay_min": 9.0,
+    "recall_by_type": {
+      "power_cut": 0.0,
+      "door_left_open": 0.8125,
+      "compressor_drift": 0.53125
+    },
+    "events_by_type": {
+      "power_cut": 64,
+      "door_left_open": 80,
+      "compressor_drift": 32
+    },
+    "median_delay_by_type_min": {
+      "power_cut": null,
+      "door_left_open": 8.0,
+      "compressor_drift": 5281.0
+    },
+    "false_alarms_by_cause": {
+      "defrost": 9
+    },
+    "threshold": 4.87542437530385,
+    "min_run": 5,
+    "val_f1": 0.6284970722186076
+  },
+  "robust z-score (temp)": {
+    "events": 176,
+    "recall": 0.9204545454545454,
+    "recall_ci95": [
+      0.8709186139872632,
+      0.9520278010802182
+    ],
+    "precision": 0.9401709401709402,
+    "precision_ci95": [
+      0.9020922338226742,
+      0.9640304293279269
+    ],
+    "f1": 0.9302082789580831,
+    "false_alarms_per_zone_day": 0.009722222222222222,
+    "median_delay_min": 38.0,
+    "recall_by_type": {
+      "power_cut": 0.796875,
+      "door_left_open": 0.9875,
+      "compressor_drift": 1.0
+    },
+    "events_by_type": {
+      "power_cut": 64,
+      "door_left_open": 80,
+      "compressor_drift": 32
+    },
+    "median_delay_by_type_min": {
+      "power_cut": 71.0,
+      "door_left_open": 8.0,
+      "compressor_drift": 4416.5
+    },
+    "false_alarms_by_cause": {
+      "defrost": 13,
+      "routine_door": 1
+    },
+    "threshold": 4.893188342836072,
+    "min_run": 15,
+    "val_f1": 0.9360391375249139
+  },
+  "robust z-score (temp + compressor current)": {
+    "events": 176,
+    "recall": 0.9204545454545454,
+    "recall_ci95": [
+      0.8709186139872632,
+      0.9520278010802182
+    ],
+    "precision": 0.9209039548022598,
+    "precision_ci95": [
+      0.8716232338084631,
+      0.9523022346678165
+    ],
+    "f1": 0.9206791952860778,
+    "false_alarms_per_zone_day": 0.009722222222222222,
+    "median_delay_min": 32.0,
+    "recall_by_type": {
+      "power_cut": 0.78125,
+      "door_left_open": 1.0,
+      "compressor_drift": 1.0
+    },
+    "events_by_type": {
+      "power_cut": 64,
+      "door_left_open": 80,
+      "compressor_drift": 32
+    },
+    "median_delay_by_type_min": {
+      "power_cut": 76.0,
+      "door_left_open": 10.0,
+      "compressor_drift": 367.5
+    },
+    "false_alarms_by_cause": {
+      "defrost": 13,
+      "routine_door": 1
+    },
+    "threshold": 5.440427814501852,
+    "min_run": 5,
+    "val_f1": 0.9090909090909091
+  },
+  "isolation forest": {
+    "events": 176,
+    "recall": 0.9261363636363636,
+    "recall_ci95": [
+      0.8777383683888433,
+      0.9563289441795502
+    ],
+    "precision": 0.9258373205741627,
+    "precision_ci95": [
+      0.8966545754750866,
+      0.9472640897300518
+    ],
+    "f1": 0.9259868179616283,
+    "false_alarms_per_zone_day": 0.021527777777777778,
+    "median_delay_min": 37.0,
+    "recall_by_type": {
+      "power_cut": 0.796875,
+      "door_left_open": 1.0,
+      "compressor_drift": 1.0
+    },
+    "events_by_type": {
+      "power_cut": 64,
+      "door_left_open": 80,
+      "compressor_drift": 32
+    },
+    "median_delay_by_type_min": {
+      "power_cut": 78.0,
+      "door_left_open": 6.0,
+      "compressor_drift": 3688.5
+    },
+    "false_alarms_by_cause": {
+      "unexplained": 8,
+      "defrost": 19,
+      "routine_door": 4
+    },
+    "threshold": 0.5955101306323113,
+    "min_run": 5,
+    "val_f1": 0.9312552857315453
+  },
+  "lightgbm supervised (upper bound)": {
+    "events": 176,
+    "recall": 0.9261363636363636,
+    "recall_ci95": [
+      0.8777383683888433,
+      0.9563289441795502
+    ],
+    "precision": 0.9074733096085409,
+    "precision_ci95": [
+      0.8678804983414893,
+      0.9360751036492311
+    ],
+    "f1": 0.916709857415392,
+    "false_alarms_per_zone_day": 0.018055555555555554,
+    "median_delay_min": 29.0,
+    "recall_by_type": {
+      "power_cut": 0.984375,
+      "door_left_open": 0.85,
+      "compressor_drift": 1.0
+    },
+    "events_by_type": {
+      "power_cut": 64,
+      "door_left_open": 80,
+      "compressor_drift": 32
+    },
+    "median_delay_by_type_min": {
+      "power_cut": 45.0,
+      "door_left_open": 7.5,
+      "compressor_drift": 325.5
+    },
+    "false_alarms_by_cause": {
+      "unexplained": 7,
+      "routine_door": 9,
+      "defrost": 10
+    },
+    "threshold": 0.8462343655882332,
+    "min_run": 5,
+    "val_f1": 0.9535934291581107
+  }
+}

@@ -4,8 +4,8 @@ An AI control tower for a simulated automated cold store: computer vision on doc
 freezer anomaly detection and breach prediction, volume forecasting, slotting, incident
 text classification, and an LLM assistant that answers from the platform's own data.
 
-> **Status: week 1 of 8.** Foundation and synthetic data are done. Models are not built yet,
-> so there is no results table yet. The table will be filled only with measured numbers.
+> **Status: early build.** Simulator, data plane and the first model (freezer anomaly detection)
+> are done. Other models are not built yet. The results table holds measured numbers only.
 
 Inspired by public descriptions of highly automated frozen warehouses. It is not affiliated
 with, and does not use data from, any real operator. All sensor data is **synthetic** (see
@@ -37,5 +37,10 @@ docs/                     proposal, data sheet, model cards (as models land)
 
 ## Results
 
-_Filled in as models are evaluated. Each row will have a baseline, a split description and
-its model card._
+Every row has a baseline, a stated split and a model card. Rows are added as models are evaluated.
+
+| Task | Data | Baseline | Best simple method | Key result (test) | Card |
+|---|---|---|---|---|---|
+| Freezer anomaly detection | **Synthetic** (176 test events) | z-score: event-F1 0.93, drift caught after ~3 days | Robust z-score on temperature + compressor current | Same F1 (0.92), but drift caught in **~6 h (12x earlier)**. Isolation forest did not beat it. | [card](docs/model-cards/anomaly.md) |
+
+_Synthetic-data results measure fit to my simulator, not real-world performance._
