@@ -67,3 +67,22 @@ class BreachResponse(BaseModel):
     horizon_min: int
     breach_c: float
     points: list[BreachPoint]
+
+
+class IncidentRequest(BaseModel):
+    texts: list[str] = Field(min_length=1, max_length=64, description="Free-text incident reports")
+
+
+class IncidentResult(BaseModel):
+    label: Literal["damage", "temperature", "delay", "safety"]
+    confidence: float = Field(
+        description="Top softmax score. A ranking signal, NOT a calibrated probability."
+    )
+    scores: dict[str, float]
+    needs_review: bool = Field(description="True when the top score is below the review threshold")
+
+
+class IncidentResponse(BaseModel):
+    model: ModelRef
+    review_below: float
+    results: list[IncidentResult]

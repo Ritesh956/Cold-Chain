@@ -75,3 +75,54 @@ def breach_model_and_config(sim: Sim) -> tuple[LGBMClassifier, dict]:
         "data": "SYNTHETIC",
     }
     return clf, config
+
+
+class _Enc:
+    def __init__(self, ids: list[int], mask: list[int]) -> None:
+        self.ids, self.attention_mask = ids, mask
+
+
+class StubTokenizer:
+    """word -> id by a small vocabulary; pads to the longest text like the real tokenizer."""
+
+    VOCAB = {
+        "crushed": 1,
+        "torn": 1,
+        "temperature": 2,
+        "alarm": 2,
+        "late": 3,
+        "delayed": 3,
+        "injury": 4,
+        "slipped": 4,
+    }
+
+    def encode_batch(self, texts: list[str]) -> list[_Enc]:
+        rows = [[self.VOCAB.get(w, 9) for w in t.lower().split()] or [9] for t in texts]
+        width = max(len(r) for r in rows)
+        return [_Enc(r + [0] * (width - len(r)), [1] * len(r) + [0] * (width - len(r))) for r in rows]
+
+
+class StubSession:
+    """logits favour the class whose keyword ids appear (1 damage, 2 temperature, 3 delay, 4 safety)."""
+
+    def run(self, names, feed):
+        import numpy as np
+
+        ids = feed["input_ids"]
+        logits = np.zeros((ids.shape[0], 4))
+        for i, row in enumerate(ids):
+            for tok in row:
+                if 1 <= tok <= 4:
+                    logits[i, tok - 1] += 3.0
+        return [logits]
+
+
+def make_incident_model(review_below: float = 0.7):
+    from coldchain_ml.nlp.serving import IncidentModel
+
+    config = {
+        "labels": ["damage", "temperature", "delay", "safety"],
+        "review_below": review_below,
+        "max_chars": 200,
+    }
+    return IncidentModel(StubSession(), StubTokenizer(), config, "test")

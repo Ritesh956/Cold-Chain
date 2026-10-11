@@ -1,0 +1,54 @@
+{
+  "config": {
+    "type": "distilbert_onnx_int8",
+    "labels": [
+      "damage",
+      "temperature",
+      "delay",
+      "safety"
+    ],
+    "onnx_file": "model_int8.onnx",
+    "max_len": 64,
+    "pad_id": 0,
+    "pad_token": "[PAD]",
+    "threads": 1,
+    "max_chars": 2000,
+    "review_below": 0.9597809314727783,
+    "data": "SYNTHETIC",
+    "source": "distilbert-base-uncased fine-tuned (models\\nlp\\distilbert-seed1), dynamic int8 quantisation, scored one report at a time",
+    "reported_test": {
+      "test_macro_f1": 0.7408382601565973,
+      "independent_macro_f1": 0.7950216144149967,
+      "baseline_tfidf_test_macro_f1": 0.7545729309595688
+    }
+  },
+  "measured": {
+    "val": {
+      "macro_f1": 0.6245529864443411,
+      "accuracy": 0.675,
+      "flagged_fraction": 0.2,
+      "accuracy_if_auto_accepted": 0.6770833333333333,
+      "accuracy_if_flagged": 0.6666666666666667,
+      "share_of_errors_flagged": 0.20512820512820512,
+      "auroc_low_confidence_predicts_error": 0.4548512187401076
+    },
+    "test": {
+      "macro_f1": 0.7408382601565973,
+      "accuracy": 0.75,
+      "flagged_fraction": 0.23958333333333334,
+      "accuracy_if_auto_accepted": 0.8506849315068493,
+      "accuracy_if_flagged": 0.4304347826086956,
+      "share_of_errors_flagged": 0.5458333333333333,
+      "auroc_low_confidence_predicts_error": 0.8388686342592593
+    },
+    "independent": {
+      "macro_f1": 0.7950216144149967,
+      "accuracy": 0.8,
+      "flagged_fraction": 0.26666666666666666,
+      "accuracy_if_auto_accepted": 0.8977272727272727,
+      "accuracy_if_flagged": 0.53125,
+      "share_of_errors_flagged": 0.625,
+      "auroc_low_confidence_predicts_error": 0.7760416666666666
+    }
+  }
+}

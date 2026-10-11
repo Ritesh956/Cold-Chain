@@ -1,6 +1,7 @@
 # ColdChain AI — Approved Architecture & Plan
 
-Status: **approved** (2026-10-10). Constraint added at approval: **total spend = ₹0**.
+Status: **approved** (2026-10-10), partly built (see [Progress and deviations](#progress-and-deviations)).
+Constraint added at approval: **total spend = ₹0**.
 
 ## Zero-cost constraint — how each piece is covered
 
@@ -72,3 +73,36 @@ Cut order if time runs out: damage classifier → HDBSCAN → Helm.
 6. Assistant + eval harness, `core`, dashboard v1
 7. Drift monitor, Grafana, integration CI, deploy
 8. README, GIF, model cards, results, resume bullets, interview Q&A (buffer)
+
+## Progress and deviations
+
+Last updated 2026-10-12. The 8-week plan above is a work-package schedule, not elapsed calendar time.
+
+| Plan item | Status | Where |
+|---|---|---|
+| Repo, CI, simulator, Compose data plane | Done | `services/simulator`, `docker-compose.yml`, `.github/workflows/ci.yml` |
+| Freezer anomaly detection (baselines vs models, event-level metrics) | Done, synthetic + a 3-failure real-data check | [model card](model-cards/anomaly.md) |
+| Breach early warning | Done, synthetic | [model card](model-cards/breach.md) |
+| Model serving + MLflow registry + metrics | Done | [ml-api](ml-api.md) |
+| `core` (NATS ingest, Postgres history, alerts, live API) | Done (built ahead of its planned week) | [core](core.md) |
+| Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF** | [model card](model-cards/incident-nlp.md) |
+| Forecasting and clustering/slotting | Not started (needs the Kaggle M5 token) | |
+| CVAT labelling, YOLO, tracking, ONNX/INT8 for vision, RTSP worker | Not started | |
+| OCR/barcode, damaged-pallet classifier | Not started | |
+| LLM assistant + eval harness | Not started | |
+| Dashboard, drift monitor, Grafana | Not started (the ml-api already exports score histograms for the drift monitor) | |
+| Cloud deployment | Not started; CI builds the images and runs integration tests on real NATS/TimescaleDB/Redis | |
+| README, model cards, results | Partial: README and 4 model cards/docs exist; no GIF, resume bullets or interview Q&A yet | |
+
+Deviations from the plan, and why:
+
+- **Incident text is generated programmatically, not by an LLM.** No free LLM key was available yet.
+  The generator is deterministic and tested for leakage; the OSHA real-text check was **not** done.
+  A 120-report independent set was written by the AI assistant (synthetic, labelled as such).
+- **The BERT result is "no measurable gain".** The plan asked for a model that is compared honestly with
+  a baseline; it is, and the baseline ties. The transformer is still the served model because the project
+  is meant to demonstrate that stack; the model card says so and says when to switch.
+- **ml-api serves three models, one as an optional model**, and scores incident reports one at a time
+  (dynamic int8 quantisation made batched results depend on their neighbours).
+- **Kubernetes/Helm, Go ingestion and Detectron2 remain cut**, as planned.
+- **Azure:** nothing deployed. The images build in CI; the free-tier plan above is unchanged.

@@ -19,6 +19,9 @@ from coldchain_ml_api.schemas import (
     AnomalyResponse,
     BreachPoint,
     BreachResponse,
+    IncidentRequest,
+    IncidentResponse,
+    IncidentResult,
     ModelRef,
     WindowRequest,
 )
@@ -39,7 +42,8 @@ def create_app(models: Models | None = None, settings: Settings | None = None) -
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Fail fast: a service that cannot load its models must not report ready.
         app.state.models = models or Models.load(settings or Settings.from_env())
-        for m in (app.state.models.anomaly, app.state.models.breach):
+        loaded = [app.state.models.anomaly, app.state.models.breach, app.state.models.incident]
+        for m in (x for x in loaded if x is not None):
             metrics.model_info.labels(model=m.name, version=m.version).set(1)
             log.info("loaded %s v%s", m.name, m.version)
         yield
@@ -77,16 +81,46 @@ def create_app(models: Models | None = None, settings: Settings | None = None) -
     @app.get("/v1/models", tags=["models"])
     def model_info(request: Request) -> dict:
         m: Models = request.app.state.models
-        return {
-            x.name: {
+        info: dict = {}
+        for x in (m.anomaly, m.breach):
+            info[x.name] = {
                 "version": x.version,
                 "min_history_min": x.min_history,
                 "threshold": x.threshold,
                 "data": x.config.get("data"),
                 "reported_test": x.config.get("reported_test"),
             }
-            for x in (m.anomaly, m.breach)
-        }
+        if m.incident is not None:
+            info[m.incident.name] = {
+                "version": m.incident.version,
+                "review_below": m.incident.review_below,
+                "data": m.incident.config.get("data"),
+                "reported_test": m.incident.config.get("reported_test"),
+            }
+        return info
+
+    @app.post("/v1/incidents/classify", response_model=IncidentResponse, tags=["models"])
+    def incidents_classify(req: IncidentRequest, request: Request) -> IncidentResponse:
+        model = request.app.state.models.incident
+        if model is None:
+            return JSONResponse(  # type: ignore[return-value]
+                status_code=503,
+                content={"error": {"code": "model_unavailable", "message": "incident model is not loaded"}},
+            )
+        texts = [t.strip() for t in req.texts]
+        if any(not t or len(t) > model.max_chars for t in texts):
+            raise InputError("invalid_text", f"each text must be 1 to {model.max_chars} characters")
+        t0 = time.perf_counter()
+        raw = model.classify(texts)
+        metrics.inference_seconds.labels(model.name).observe(time.perf_counter() - t0)
+        for r in raw:
+            metrics.predictions.labels(model.name, r["label"]).inc()
+            metrics.incident_confidence.observe(r["confidence"])
+        return IncidentResponse(
+            model=ModelRef(name=model.name, version=model.version),
+            review_below=model.review_below,
+            results=[IncidentResult(**r) for r in raw],
+        )
 
     @app.post("/v1/anomaly/score", response_model=AnomalyResponse, tags=["models"])
     def anomaly_score(req: WindowRequest, request: Request) -> AnomalyResponse:

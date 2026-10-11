@@ -1,0 +1,1244 @@
+{
+  "tfidf_logreg": {
+    "val": {
+      "n": 480,
+      "accuracy": 0.6458333333333334,
+      "macro_f1": 0.5769400755732288,
+      "per_class": {
+        "damage": {
+          "precision": 0.45217391304347826,
+          "recall": 0.8666666666666667,
+          "f1": 0.5942857142857143,
+          "support": 120
+        },
+        "temperature": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 120
+        },
+        "delay": {
+          "precision": 0.8217054263565892,
+          "recall": 0.8833333333333333,
+          "f1": 0.8514056224899599,
+          "support": 120
+        },
+        "safety": {
+          "precision": 0.8928571428571429,
+          "recall": 0.8333333333333334,
+          "f1": 0.8620689655172413,
+          "support": 120
+        }
+      },
+      "confusion": [
+        [
+          104,
+          0,
+          6,
+          10
+        ],
+        [
+          106,
+          0,
+          14,
+          0
+        ],
+        [
+          4,
+          8,
+          106,
+          2
+        ],
+        [
+          16,
+          1,
+          3,
+          100
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.5506842548964993,
+        0.6004167459816934
+      ]
+    },
+    "test": {
+      "n": 960,
+      "accuracy": 0.7604166666666666,
+      "macro_f1": 0.7545729309595688,
+      "per_class": {
+        "damage": {
+          "precision": 0.6900958466453674,
+          "recall": 0.9,
+          "f1": 0.7811934900542495,
+          "support": 240
+        },
+        "temperature": {
+          "precision": 0.7953216374269005,
+          "recall": 0.5666666666666667,
+          "f1": 0.6618004866180048,
+          "support": 240
+        },
+        "delay": {
+          "precision": 0.9451219512195121,
+          "recall": 0.6458333333333334,
+          "f1": 0.7673267326732673,
+          "support": 240
+        },
+        "safety": {
+          "precision": 0.7147435897435898,
+          "recall": 0.9291666666666667,
+          "f1": 0.8079710144927537,
+          "support": 240
+        }
+      },
+      "confusion": [
+        [
+          216,
+          0,
+          0,
+          24
+        ],
+        [
+          80,
+          136,
+          7,
+          17
+        ],
+        [
+          10,
+          27,
+          155,
+          48
+        ],
+        [
+          7,
+          8,
+          2,
+          223
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.7242493699028669,
+        0.7805945715121286
+      ]
+    },
+    "independent": {
+      "n": 120,
+      "accuracy": 0.8083333333333333,
+      "macro_f1": 0.7985212179737735,
+      "per_class": {
+        "damage": {
+          "precision": 0.84375,
+          "recall": 0.9,
+          "f1": 0.8709677419354839,
+          "support": 30
+        },
+        "temperature": {
+          "precision": 0.7741935483870968,
+          "recall": 0.8,
+          "f1": 0.7868852459016393,
+          "support": 30
+        },
+        "delay": {
+          "precision": 0.7692307692307693,
+          "recall": 1.0,
+          "f1": 0.8695652173913043,
+          "support": 30
+        },
+        "safety": {
+          "precision": 0.8888888888888888,
+          "recall": 0.5333333333333333,
+          "f1": 0.6666666666666666,
+          "support": 30
+        }
+      },
+      "confusion": [
+        [
+          27,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          24,
+          4,
+          1
+        ],
+        [
+          0,
+          0,
+          30,
+          0
+        ],
+        [
+          4,
+          6,
+          4,
+          16
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.7227056623931625,
+        0.8626519030004735
+      ]
+    },
+    "chosen_C": 30,
+    "val_macro_f1_by_C": {
+      "0.3": 0.5744931608291151,
+      "1": 0.573000265616223,
+      "3": 0.5712692037993242,
+      "10": 0.5730055626858102,
+      "30": 0.5769400755732288
+    }
+  },
+  "distilbert_seed0": {
+    "val": {
+      "n": 480,
+      "accuracy": 0.6333333333333333,
+      "macro_f1": 0.585118732923118,
+      "per_class": {
+        "damage": {
+          "precision": 0.47391304347826085,
+          "recall": 0.9083333333333333,
+          "f1": 0.6228571428571429,
+          "support": 120
+        },
+        "temperature": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 120
+        },
+        "delay": {
+          "precision": 0.8793103448275862,
+          "recall": 0.85,
+          "f1": 0.864406779661017,
+          "support": 120
+        },
+        "safety": {
+          "precision": 0.9489795918367347,
+          "recall": 0.775,
+          "f1": 0.8532110091743119,
+          "support": 120
+        }
+      },
+      "confusion": [
+        [
+          109,
+          0,
+          11,
+          0
+        ],
+        [
+          119,
+          0,
+          1,
+          0
+        ],
+        [
+          2,
+          11,
+          102,
+          5
+        ],
+        [
+          0,
+          25,
+          2,
+          93
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.5589401574926115,
+        0.608782649307519
+      ]
+    },
+    "test": {
+      "n": 960,
+      "accuracy": 0.7583333333333333,
+      "macro_f1": 0.74782452950782,
+      "per_class": {
+        "damage": {
+          "precision": 0.726984126984127,
+          "recall": 0.9541666666666667,
+          "f1": 0.8252252252252252,
+          "support": 240
+        },
+        "temperature": {
+          "precision": 0.635,
+          "recall": 0.5291666666666667,
+          "f1": 0.5772727272727273,
+          "support": 240
+        },
+        "delay": {
+          "precision": 0.7593582887700535,
+          "recall": 0.5916666666666667,
+          "f1": 0.6651053864168618,
+          "support": 240
+        },
+        "safety": {
+          "precision": 0.8914728682170543,
+          "recall": 0.9583333333333334,
+          "f1": 0.9236947791164659,
+          "support": 240
+        }
+      },
+      "confusion": [
+        [
+          229,
+          0,
+          0,
+          11
+        ],
+        [
+          69,
+          127,
+          44,
+          0
+        ],
+        [
+          14,
+          67,
+          142,
+          17
+        ],
+        [
+          3,
+          6,
+          1,
+          230
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.7209633662238687,
+        0.7719394266716526
+      ]
+    },
+    "independent": {
+      "n": 120,
+      "accuracy": 0.7416666666666667,
+      "macro_f1": 0.7230339105339105,
+      "per_class": {
+        "damage": {
+          "precision": 0.7142857142857143,
+          "recall": 0.3333333333333333,
+          "f1": 0.45454545454545453,
+          "support": 30
+        },
+        "temperature": {
+          "precision": 0.8846153846153846,
+          "recall": 0.7666666666666667,
+          "f1": 0.8214285714285714,
+          "support": 30
+        },
+        "delay": {
+          "precision": 0.8484848484848485,
+          "recall": 0.9333333333333333,
+          "f1": 0.8888888888888888,
+          "support": 30
+        },
+        "safety": {
+          "precision": 0.5957446808510638,
+          "recall": 0.9333333333333333,
+          "f1": 0.7272727272727273,
+          "support": 30
+        }
+      },
+      "confusion": [
+        [
+          10,
+          0,
+          1,
+          19
+        ],
+        [
+          3,
+          23,
+          4,
+          0
+        ],
+        [
+          0,
+          2,
+          28,
+          0
+        ],
+        [
+          1,
+          1,
+          0,
+          28
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.6394681269434792,
+        0.7902351154830413
+      ]
+    },
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.5810034321667626,
+        "val_macro_f1": 0.48487626922055116,
+        "seconds": 264.56914400000005
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.0039885132084600625,
+        "val_macro_f1": 0.585118732923118,
+        "seconds": 246.45634300000006
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.0017457682744134216,
+        "val_macro_f1": 0.5799240439538794,
+        "seconds": 244.2759066000001
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.0012731403461657465,
+        "val_macro_f1": 0.5820217999409099,
+        "seconds": 244.18890729999998
+      }
+    ],
+    "config": {
+      "seed": 0,
+      "epochs": 4,
+      "batch_size": 32,
+      "lr": 5e-05,
+      "weight_decay": 0.01,
+      "warmup_frac": 0.1
+    }
+  },
+  "onnx_benchmark": {
+    "machine": "Intel64 Family 6 Model 186 Stepping 2, GenuineIntel | 20 logical CPUs | torch 2.14.1+cpu | onnxruntime 1.31.0",
+    "sizes_mb": {
+      "torch_safetensors_mb": 255.430908203125,
+      "onnx_fp32_mb": 255.53532791137695,
+      "onnx_int8_mb": 64.24505138397217
+    },
+    "accuracy": {
+      "pytorch fp32": {
+        "test": {
+          "macro_f1": 0.7310038210416748,
+          "accuracy": 0.74375,
+          "agreement_with_pytorch": 1.0
+        },
+        "independent": {
+          "macro_f1": 0.7948916408668731,
+          "accuracy": 0.8,
+          "agreement_with_pytorch": 1.0
+        }
+      },
+      "onnx fp32": {
+        "test": {
+          "macro_f1": 0.7310038210416748,
+          "accuracy": 0.74375,
+          "agreement_with_pytorch": 1.0
+        },
+        "independent": {
+          "macro_f1": 0.7948916408668731,
+          "accuracy": 0.8,
+          "agreement_with_pytorch": 1.0
+        }
+      },
+      "onnx int8": {
+        "test": {
+          "macro_f1": 0.7408382601565973,
+          "accuracy": 0.75,
+          "agreement_with_pytorch": 0.9177083333333333
+        },
+        "independent": {
+          "macro_f1": 0.7950216144149967,
+          "accuracy": 0.8,
+          "agreement_with_pytorch": 0.9666666666666667
+        }
+      },
+      "onnx int8 (batches of 64)": {
+        "test": {
+          "macro_f1": 0.7441884345506835,
+          "accuracy": 0.753125,
+          "agreement_with_pytorch": 0.9197916666666667
+        },
+        "independent": {
+          "macro_f1": 0.8026046799495345,
+          "accuracy": 0.8083333333333333,
+          "agreement_with_pytorch": 0.975
+        }
+      }
+    },
+    "latency": {
+      "pytorch fp32": {
+        "1_thread": {
+          "single_p50_ms": 82.34924999987925,
+          "single_p95_ms": 112.77038499974874,
+          "round_p50_min_ms": 75.82404999993742,
+          "round_p50_max_ms": 91.00790000002235,
+          "batch32_reports_per_s": 11.566126824124392
+        },
+        "20_threads": {
+          "single_p50_ms": 22.430349999922328,
+          "single_p95_ms": 35.54229499936807,
+          "round_p50_min_ms": 20.87810000011814,
+          "round_p50_max_ms": 32.5347499997406,
+          "batch32_reports_per_s": 72.0596563880424
+        }
+      },
+      "onnx fp32": {
+        "1_thread": {
+          "single_p50_ms": 59.73210000001927,
+          "single_p95_ms": 84.68245000035495,
+          "round_p50_min_ms": 57.86785000009331,
+          "round_p50_max_ms": 68.89819999969404,
+          "batch32_reports_per_s": 11.933669532151844
+        },
+        "20_threads": {
+          "single_p50_ms": 17.735150000135036,
+          "single_p95_ms": 65.43414500024468,
+          "round_p50_min_ms": 15.278700000180834,
+          "round_p50_max_ms": 34.25925000010466,
+          "batch32_reports_per_s": 83.54633296863376
+        }
+      },
+      "onnx int8": {
+        "1_thread": {
+          "single_p50_ms": 20.747900000060326,
+          "single_p95_ms": 29.773694999721553,
+          "round_p50_min_ms": 19.987250000212953,
+          "round_p50_max_ms": 21.455999999943742,
+          "batch32_reports_per_s": 34.07442969963199
+        },
+        "20_threads": {
+          "single_p50_ms": 11.239300000397634,
+          "single_p95_ms": 69.42479000017556,
+          "round_p50_min_ms": 9.642500000154541,
+          "round_p50_max_ms": 18.492149999929097,
+          "batch32_reports_per_s": 154.6867922777749
+        }
+      },
+      "speedups_median_of_rounds": {
+        "1_thread": {
+          "onnx_fp32_vs_pytorch": 1.3858238853755234,
+          "int8_vs_pytorch": 4.038401981221717,
+          "int8_vs_onnx_fp32": 2.9140802260941054
+        },
+        "20_threads": {
+          "onnx_fp32_vs_pytorch": 1.2692085569970102,
+          "int8_vs_pytorch": 1.9757579071590823,
+          "int8_vs_onnx_fp32": 1.4989272519862036
+        }
+      }
+    },
+    "source_model": "models\\nlp\\distilbert-seed1",
+    "latency_method": "5 interleaved rounds x 40 single-report calls per variant, model only (pre-tokenised)"
+  },
+  "distilbert_seed1": {
+    "val": {
+      "n": 480,
+      "accuracy": 0.6666666666666666,
+      "macro_f1": 0.6194243933562178,
+      "per_class": {
+        "damage": {
+          "precision": 0.4957627118644068,
+          "recall": 0.975,
+          "f1": 0.6573033707865169,
+          "support": 120
+        },
+        "temperature": {
+          "precision": 0.02702702702702703,
+          "recall": 0.008333333333333333,
+          "f1": 0.012738853503184714,
+          "support": 120
+        },
+        "delay": {
+          "precision": 0.9615384615384616,
+          "recall": 0.8333333333333334,
+          "f1": 0.8928571428571429,
+          "support": 120
+        },
+        "safety": {
+          "precision": 0.9902912621359223,
+          "recall": 0.85,
+          "f1": 0.9147982062780269,
+          "support": 120
+        }
+      },
+      "confusion": [
+        [
+          117,
+          0,
+          3,
+          0
+        ],
+        [
+          119,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          19,
+          100,
+          1
+        ],
+        [
+          0,
+          17,
+          1,
+          102
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.595105986013851,
+        0.6420503234089464
+      ]
+    },
+    "test": {
+      "n": 960,
+      "accuracy": 0.74375,
+      "macro_f1": 0.7310038210416748,
+      "per_class": {
+        "damage": {
+          "precision": 0.6956521739130435,
+          "recall": 1.0,
+          "f1": 0.8205128205128205,
+          "support": 240
+        },
+        "temperature": {
+          "precision": 0.5436507936507936,
+          "recall": 0.5708333333333333,
+          "f1": 0.556910569105691,
+          "support": 240
+        },
+        "delay": {
+          "precision": 0.9557522123893806,
+          "recall": 0.45,
+          "f1": 0.6118980169971672,
+          "support": 240
+        },
+        "safety": {
+          "precision": 0.916,
+          "recall": 0.9541666666666667,
+          "f1": 0.9346938775510204,
+          "support": 240
+        }
+      },
+      "confusion": [
+        [
+          240,
+          0,
+          0,
+          0
+        ],
+        [
+          98,
+          137,
+          5,
+          0
+        ],
+        [
+          6,
+          105,
+          108,
+          21
+        ],
+        [
+          1,
+          10,
+          0,
+          229
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.7028155726917987,
+        0.7569546471174622
+      ]
+    },
+    "independent": {
+      "n": 120,
+      "accuracy": 0.8,
+      "macro_f1": 0.7948916408668731,
+      "per_class": {
+        "damage": {
+          "precision": 0.8571428571428571,
+          "recall": 0.6,
+          "f1": 0.7058823529411765,
+          "support": 30
+        },
+        "temperature": {
+          "precision": 0.8518518518518519,
+          "recall": 0.7666666666666667,
+          "f1": 0.8070175438596491,
+          "support": 30
+        },
+        "delay": {
+          "precision": 0.8055555555555556,
+          "recall": 0.9666666666666667,
+          "f1": 0.8787878787878788,
+          "support": 30
+        },
+        "safety": {
+          "precision": 0.7222222222222222,
+          "recall": 0.8666666666666667,
+          "f1": 0.7878787878787878,
+          "support": 30
+        }
+      },
+      "confusion": [
+        [
+          18,
+          0,
+          3,
+          9
+        ],
+        [
+          2,
+          23,
+          4,
+          1
+        ],
+        [
+          0,
+          1,
+          29,
+          0
+        ],
+        [
+          1,
+          3,
+          0,
+          26
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.7182836739103592,
+        0.8658017022749005
+      ]
+    },
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.5616470082849264,
+        "val_macro_f1": 0.6193801394877594,
+        "seconds": 365.23552930000005
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.006844804575666785,
+        "val_macro_f1": 0.6194243933562178,
+        "seconds": 462.94995419999987
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.0019837933022063227,
+        "val_macro_f1": 0.6121351998144273,
+        "seconds": 350.84200459999965
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.001440934962593019,
+        "val_macro_f1": 0.6159248846415218,
+        "seconds": 365.60109570000077
+      }
+    ],
+    "config": {
+      "seed": 1,
+      "epochs": 4,
+      "batch_size": 32,
+      "lr": 5e-05,
+      "weight_decay": 0.01,
+      "warmup_frac": 0.1
+    }
+  },
+  "distilbert_seed2": {
+    "val": {
+      "n": 480,
+      "accuracy": 0.6833333333333333,
+      "macro_f1": 0.6144234553325463,
+      "per_class": {
+        "damage": {
+          "precision": 0.5087719298245614,
+          "recall": 0.9666666666666667,
+          "f1": 0.6666666666666666,
+          "support": 120
+        },
+        "temperature": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 120
+        },
+        "delay": {
+          "precision": 0.8918918918918919,
+          "recall": 0.825,
+          "f1": 0.8571428571428571,
+          "support": 120
+        },
+        "safety": {
+          "precision": 0.9262295081967213,
+          "recall": 0.9416666666666667,
+          "f1": 0.9338842975206612,
+          "support": 120
+        }
+      },
+      "confusion": [
+        [
+          116,
+          0,
+          4,
+          0
+        ],
+        [
+          112,
+          0,
+          8,
+          0
+        ],
+        [
+          0,
+          12,
+          99,
+          9
+        ],
+        [
+          0,
+          7,
+          0,
+          113
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.5892089139221983,
+        0.6355318860842245
+      ]
+    },
+    "test": {
+      "n": 960,
+      "accuracy": 0.7375,
+      "macro_f1": 0.7201370963141112,
+      "per_class": {
+        "damage": {
+          "precision": 0.7952218430034129,
+          "recall": 0.9708333333333333,
+          "f1": 0.874296435272045,
+          "support": 240
+        },
+        "temperature": {
+          "precision": 0.5740740740740741,
+          "recall": 0.6458333333333334,
+          "f1": 0.6078431372549019,
+          "support": 240
+        },
+        "delay": {
+          "precision": 0.7851239669421488,
+          "recall": 0.3958333333333333,
+          "f1": 0.5263157894736842,
+          "support": 240
+        },
+        "safety": {
+          "precision": 0.8152173913043478,
+          "recall": 0.9375,
+          "f1": 0.872093023255814,
+          "support": 240
+        }
+      },
+      "confusion": [
+        [
+          233,
+          2,
+          0,
+          5
+        ],
+        [
+          56,
+          155,
+          26,
+          3
+        ],
+        [
+          3,
+          99,
+          95,
+          43
+        ],
+        [
+          1,
+          14,
+          0,
+          225
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.6936106936636527,
+        0.7482607864509673
+      ]
+    },
+    "independent": {
+      "n": 120,
+      "accuracy": 0.8583333333333333,
+      "macro_f1": 0.8575150334122291,
+      "per_class": {
+        "damage": {
+          "precision": 0.8571428571428571,
+          "recall": 0.8,
+          "f1": 0.8275862068965517,
+          "support": 30
+        },
+        "temperature": {
+          "precision": 0.8888888888888888,
+          "recall": 0.8,
+          "f1": 0.8421052631578947,
+          "support": 30
+        },
+        "delay": {
+          "precision": 0.875,
+          "recall": 0.9333333333333333,
+          "f1": 0.9032258064516129,
+          "support": 30
+        },
+        "safety": {
+          "precision": 0.8181818181818182,
+          "recall": 0.9,
+          "f1": 0.8571428571428571,
+          "support": 30
+        }
+      },
+      "confusion": [
+        [
+          24,
+          0,
+          1,
+          5
+        ],
+        [
+          3,
+          24,
+          3,
+          0
+        ],
+        [
+          0,
+          1,
+          28,
+          1
+        ],
+        [
+          1,
+          2,
+          0,
+          27
+        ]
+      ],
+      "labels": [
+        "damage",
+        "temperature",
+        "delay",
+        "safety"
+      ],
+      "macro_f1_ci95": [
+        0.7921487662060167,
+        0.914602848223284
+      ]
+    },
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.5508939832914621,
+        "val_macro_f1": 0.5893652399296758,
+        "seconds": 345.3397169
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.0049902429711073636,
+        "val_macro_f1": 0.6144234553325463,
+        "seconds": 406.9160099999999
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.0018103209545370191,
+        "val_macro_f1": 0.5847717832368545,
+        "seconds": 275.8301580999996
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.0012687691010069102,
+        "val_macro_f1": 0.605154299598744,
+        "seconds": 310.5914248000008
+      }
+    ],
+    "config": {
+      "seed": 2,
+      "epochs": 4,
+      "batch_size": 32,
+      "lr": 5e-05,
+      "weight_decay": 0.01,
+      "warmup_frac": 0.1
+    }
+  },
+  "paired_comparison_seed0": {
+    "test": {
+      "baseline_only_correct": 76,
+      "model_only_correct": 74,
+      "mcnemar_exact_p": 0.9349614855143201,
+      "macro_f1_diff_model_minus_baseline": -0.006657115258373731,
+      "diff_ci95": [
+        -0.03385819651860981,
+        0.018910993774925916
+      ]
+    },
+    "test_by_family": {
+      "damage/crane": {
+        "baseline_acc": 0.85,
+        "model_acc": 0.925,
+        "n": 120
+      },
+      "damage/telegraphic": {
+        "baseline_acc": 0.95,
+        "model_acc": 0.9833333333333333,
+        "n": 120
+      },
+      "delay/dock_queue": {
+        "baseline_acc": 0.4166666666666667,
+        "model_acc": 0.4166666666666667,
+        "n": 120
+      },
+      "delay/telegraphic": {
+        "baseline_acc": 0.875,
+        "model_acc": 0.7666666666666667,
+        "n": 120
+      },
+      "safety/ppe": {
+        "baseline_acc": 0.9333333333333333,
+        "model_acc": 0.9416666666666667,
+        "n": 120
+      },
+      "safety/slip": {
+        "baseline_acc": 0.925,
+        "model_acc": 0.975,
+        "n": 120
+      },
+      "temperature/logger": {
+        "baseline_acc": 0.48333333333333334,
+        "model_acc": 0.36666666666666664,
+        "n": 120
+      },
+      "temperature/telegraphic": {
+        "baseline_acc": 0.65,
+        "model_acc": 0.6916666666666667,
+        "n": 120
+      }
+    },
+    "independent": {
+      "baseline_only_correct": 24,
+      "model_only_correct": 16,
+      "mcnemar_exact_p": 0.26818725105476915,
+      "macro_f1_diff_model_minus_baseline": -0.07584142178456092,
+      "diff_ci95": [
+        -0.17199985613363974,
+        0.022956398603572202
+      ]
+    }
+  },
+  "baseline_cost": {
+    "single_p50_ms": 3.266899999744055,
+    "single_p95_ms": 4.066500000271844,
+    "batch_reports_per_s": 5992.46821652758,
+    "pickled_mb": 0.5546903610229492
+  },
+  "paired_comparison_seed1": {
+    "test": {
+      "baseline_only_correct": 89,
+      "model_only_correct": 73,
+      "mcnemar_exact_p": 0.23850049967578182,
+      "macro_f1_diff_model_minus_baseline": -0.02290892486612005,
+      "diff_ci95": [
+        -0.050889485448076484,
+        0.005270928272442949
+      ]
+    },
+    "test_by_family": {
+      "damage/crane": {
+        "baseline_acc": 0.85,
+        "model_acc": 1.0,
+        "n": 120
+      },
+      "damage/telegraphic": {
+        "baseline_acc": 0.95,
+        "model_acc": 1.0,
+        "n": 120
+      },
+      "delay/dock_queue": {
+        "baseline_acc": 0.4166666666666667,
+        "model_acc": 0.26666666666666666,
+        "n": 120
+      },
+      "delay/telegraphic": {
+        "baseline_acc": 0.875,
+        "model_acc": 0.6333333333333333,
+        "n": 120
+      },
+      "safety/ppe": {
+        "baseline_acc": 0.9333333333333333,
+        "model_acc": 0.9166666666666666,
+        "n": 120
+      },
+      "safety/slip": {
+        "baseline_acc": 0.925,
+        "model_acc": 0.9916666666666667,
+        "n": 120
+      },
+      "temperature/logger": {
+        "baseline_acc": 0.48333333333333334,
+        "model_acc": 0.475,
+        "n": 120
+      },
+      "temperature/telegraphic": {
+        "baseline_acc": 0.65,
+        "model_acc": 0.6666666666666666,
+        "n": 120
+      }
+    },
+    "independent": {
+      "baseline_only_correct": 15,
+      "model_only_correct": 14,
+      "mcnemar_exact_p": 1.0,
+      "macro_f1_diff_model_minus_baseline": -0.001600277508432991,
+      "diff_ci95": [
+        -0.09001813059966413,
+        0.08661775497804693
+      ]
+    }
+  },
+  "paired_comparison_seed2": {
+    "test": {
+      "baseline_only_correct": 111,
+      "model_only_correct": 89,
+      "mcnemar_exact_p": 0.13736665086863042,
+      "macro_f1_diff_model_minus_baseline": -0.03403647779792619,
+      "diff_ci95": [
+        -0.06316112911576229,
+        -0.002155530789619147
+      ]
+    },
+    "test_by_family": {
+      "damage/crane": {
+        "baseline_acc": 0.85,
+        "model_acc": 0.95,
+        "n": 120
+      },
+      "damage/telegraphic": {
+        "baseline_acc": 0.95,
+        "model_acc": 0.9916666666666667,
+        "n": 120
+      },
+      "delay/dock_queue": {
+        "baseline_acc": 0.4166666666666667,
+        "model_acc": 0.275,
+        "n": 120
+      },
+      "delay/telegraphic": {
+        "baseline_acc": 0.875,
+        "model_acc": 0.5166666666666667,
+        "n": 120
+      },
+      "safety/ppe": {
+        "baseline_acc": 0.9333333333333333,
+        "model_acc": 0.925,
+        "n": 120
+      },
+      "safety/slip": {
+        "baseline_acc": 0.925,
+        "model_acc": 0.95,
+        "n": 120
+      },
+      "temperature/logger": {
+        "baseline_acc": 0.48333333333333334,
+        "model_acc": 0.5083333333333333,
+        "n": 120
+      },
+      "temperature/telegraphic": {
+        "baseline_acc": 0.65,
+        "model_acc": 0.7833333333333333,
+        "n": 120
+      }
+    },
+    "independent": {
+      "baseline_only_correct": 10,
+      "model_only_correct": 16,
+      "mcnemar_exact_p": 0.32693958282470703,
+      "macro_f1_diff_model_minus_baseline": 0.061048645520339735,
+      "diff_ci95": [
+        -0.021930800935036222,
+        0.1471999585796391
+      ]
+    }
+  }
+}

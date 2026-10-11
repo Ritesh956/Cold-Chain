@@ -1,9 +1,10 @@
 # ml-api: model serving
 
-FastAPI service that serves the two freezer models: **anomaly detection** and **temperature-breach
-early warning**. Code: `services/ml-api/`. Both models are trained on **SYNTHETIC** data (see
-[data-sheet.md](data-sheet.md)); their limits are in the [anomaly](model-cards/anomaly.md) and
-[breach](model-cards/breach.md) model cards.
+FastAPI service that serves three models: freezer **anomaly detection**, **temperature-breach
+early warning**, and an **incident-report classifier**. Code: `services/ml-api/`. All are trained on
+**SYNTHETIC** data (see [data-sheet.md](data-sheet.md)); their limits are in the
+[anomaly](model-cards/anomaly.md), [breach](model-cards/breach.md) and
+[incident](model-cards/incident-nlp.md) model cards.
 
 ## Endpoints
 
@@ -11,6 +12,7 @@ early warning**. Code: `services/ml-api/`. Both models are trained on **SYNTHETI
 |---|---|---|
 | POST | `/v1/anomaly/score` | Is this zone behaving abnormally right now? |
 | POST | `/v1/breach/predict` | Is this zone at risk of exceeding -18 C within 30 minutes? |
+| POST | `/v1/incidents/classify` | Which kind of incident is this free-text report (damage, temperature, delay, safety)? |
 | GET | `/v1/models` | Served model versions, thresholds and the metrics they were registered with |
 | GET | `/healthz`, `/readyz` | Liveness; readiness (models loaded) |
 | GET | `/metrics` | Prometheus |
@@ -50,6 +52,30 @@ plain-English sentence for the dashboard. `drivers` give the signed robust z-sco
 `at_risk`, `risk_score`, `alarm`. `risk_score` is a model output in 0..1, **not a calibrated
 probability**, and is `null` when the minute is not at risk (already breached or recovering).
 
+### Incident classification
+
+```json
+POST /v1/incidents/classify   {"texts": ["Forklift reversed into plt 4412 at dock 3, bottom cartons crushed and wrap torn.",
+                                         "asdf qwerty"]}
+```
+
+Real output (model `coldchain-incident` v1, threshold `review_below` 0.96):
+
+| Report | label | confidence | needs_review |
+|---|---|---|---|
+| Forklift reversed into plt 4412 ... cartons crushed | damage | 1.00 | false |
+| Freezer 2 alarm since 02:15, probe reading -12C ... | temperature | 1.00 | false |
+| the door was left open and a pallet got dented | temperature | 0.99 | false |
+| asdf qwerty | delay | 0.64 | **true** |
+
+Notes: 1 to 64 reports per request, each 1 to 2000 characters (else HTTP 422). `confidence` is a
+softmax score, **not a calibrated probability**. `needs_review` is true below the threshold; on held-out
+synthetic data it flags about a quarter of reports and catches 55-62% of errors, but on the validation
+families it was no better than chance (see the [model card](model-cards/incident-nlp.md)). The mixed
+report in the third row is answered with 0.99 confidence although it names two issues: the model is
+over-confident on mixed reports. The model is **optional**: if it cannot be loaded the endpoint answers
+HTTP 503 `model_unavailable` while the other endpoints keep working.
+
 ## Design decisions (and why)
 
 - **Stateless scoring.** The caller owns the history and sends a window; the service holds no
@@ -70,10 +96,23 @@ probability**, and is `null` when the minute is not at risk (already breached or
 - **Gated promotion.** `python -m coldchain_ml.registry.promote` refits each production model and
   refuses to register it unless it reproduces the metrics in `docs/results/*.json`. Both
   models reproduced exactly (anomaly recall/precision to 1e-6, breach PR-AUC 0.5712 = 0.5712).
+- **Incident model served without PyTorch.** The service runs the int8 ONNX model with onnxruntime
+  and the `tokenizers` library (the same `IncidentModel` class the registry gate runs, kept in
+  `coldchain_ml.nlp.serving`), so the image carries no PyTorch.
+- **Each report is scored on its own.** Dynamic int8 quantisation derives activation scales from the
+  whole batch, so batching changes predictions (measured: about 2.7% of reports get a different
+  label between a batch of 1 and a batch of 64; fp32 has none). The service loops over the request's
+  texts one by one; a regression test fails if a future change batches them again. The same text
+  returns the identical answer alone or among others (checked against the real model).
+- **The incident gate caught a real problem.** `python -m coldchain_ml.registry.promote_incident`
+  refuses to register unless the serving path (onnxruntime plus the `tokenizers` library) reproduces
+  the benchmarked macro-F1. The first attempt failed (0.7556 vs 0.7514): the tokenizers were identical
+  (520 of 520 texts), the cause was the batch dependence above. After switching to one report at a time it
+  reproduced exactly (test 0.7408, independent 0.7950) and `coldchain-incident` v1 was registered.
 - **Metrics for ML, not just HTTP:** request count and latency per route, inference time per
   model, predictions by outcome, rejected inputs by reason, loaded model versions, and the score
-  distributions of served predictions (`anomaly_score`, `breach_risk_score`) as the raw material
-  for the drift monitor.
+  distributions of served predictions (`anomaly_score`, `breach_risk_score`, `incident_confidence`)
+  as the raw material for the drift monitor.
 
 ## Performance (measured)
 
@@ -93,6 +132,10 @@ Reproduce: `scripts/bench_ml_api.py`.
 - **Where the time goes** (in-process, 1500 readings): request parsing 5 ms, window to DataFrame
   6 ms (was 32 ms before I replaced per-reading `model_dump`), features about 20 ms, LightGBM
   and the breach frame the rest.
+- **Incident endpoint** (real model, same machine, one run, a loaded laptop): one report per request
+  p50 28.5 ms, p95 33.4 ms; 60 reports in one request 1.19 s (about 20 ms each, sequential by design).
+  Model-only latency of the int8 model is 21 ms on one thread; see the model card for the full ONNX
+  benchmark. This is a single measurement, not a load test.
 - **Benchmark pitfalls on Windows:** my first numbers were about 2.7 s per request, including
   `/healthz`. That was client-side (`localhost` resolving to IPv6 first, and a new httpx client
   building an SSL context on every call), not the service. The script now uses `127.0.0.1` and a
@@ -103,6 +146,10 @@ Reproduce: `scripts/bench_ml_api.py`.
 ```bash
 # register the models (writes to ./mlruns, or set MLFLOW_TRACKING_URI)
 uv run python -m coldchain_ml.registry.promote
+
+# the incident model needs the NLP artefacts, which are built locally (PyTorch group, ~1 GB):
+# see the reproduce steps in docs/model-cards/incident-nlp.md, ending with
+uv run python -m coldchain_ml.registry.promote_incident
 
 # serve on http://127.0.0.1:8081
 uv run uvicorn coldchain_ml_api.app:create_app --factory --port 8081
@@ -122,3 +169,8 @@ on the development machine), i.e. the container loading models from the Compose 
   it is a trade-off for later, not a missing feature.
 - One zone per request; no cross-zone batching.
 - Models are the synthetic-data models; thresholds are tuned for F1 on a simulator.
+- The incident model's weights are not in the repository (`models/` is git-ignored). A fresh clone
+  serves anomaly and breach after `promote`; the incident endpoint stays at 503 until the NLP
+  artefacts are rebuilt (17 to 30 minutes of CPU training plus export).
+- Incident classification is not connected to `core` yet: nothing ingests, stores or alerts on reports.
+- Incident scoring is sequential: 60 reports take over a second.

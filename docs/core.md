@@ -106,3 +106,5 @@ development machine); CI builds the images and runs the integration job on servi
 - **Single scorer and single ingest consumer.** Fine for this scale; multiple replicas would need
   leader election or sharding by zone.
 - No data retention policy yet (Timescale retention would be the natural fit).
+- **Incident reports are not handled here yet.** The ml-api can classify a report
+  (`/v1/incidents/classify`), but `core` has no endpoint or table to receive, store or alert on them.

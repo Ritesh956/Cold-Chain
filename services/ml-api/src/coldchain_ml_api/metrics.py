@@ -38,6 +38,12 @@ class Metrics:
         self.breach_risk = Histogram(
             "breach_risk_score", "Latest-minute breach risk score", buckets=BREACH_SCORE_BUCKETS, registry=r
         )
+        self.incident_confidence = Histogram(
+            "incident_confidence",
+            "Top score of classified incident reports",
+            buckets=(0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 1.0),
+            registry=r,
+        )
         self.rejected = Counter("input_rejected_total", "Rejected inputs", ["reason"], registry=r)
         self.model_info = Gauge(
             "model_info", "Loaded model version (value is always 1)", ["model", "version"], registry=r

@@ -33,7 +33,7 @@ jobs:
         run: docker build -f services/ml-api/Dockerfile -t coldchain-ml-api:ci .
       - name: Smoke test (imports, runs as non-root)
         run: |
-          docker run --rm coldchain-ml-api:ci python -c "import coldchain_ml_api.app, lightgbm, mlflow; print('ok')"
+          docker run --rm coldchain-ml-api:ci python -c "import coldchain_ml_api.app, lightgbm, mlflow, onnxruntime, tokenizers; print('ok')"
           test "$(docker run --rm coldchain-ml-api:ci id -u)" != "0"
 
   docker-core-and-simulator:
