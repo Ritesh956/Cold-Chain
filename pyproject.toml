@@ -27,7 +27,8 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["services", "libs", "ml", "tests"]
-addopts = "-q"
+addopts = "-q --import-mode=importlib"
+pythonpath = ["services/core/tests", "services/ml-api/tests"]
 asyncio_mode = "auto"
 markers = ["integration: needs real Postgres/Redis/NATS (set DATABASE_URL, REDIS_URL, NATS_URL)"]
 

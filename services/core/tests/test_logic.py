@@ -1,7 +1,7 @@
 from coldchain_core.alerts import AlertEngine
 from coldchain_core.windows import build_window
 from coldchain_schemas import AlertKind
-from conftest import MIN, T0, history, reading
+from core_helpers import MIN, T0, history, reading
 
 
 # ---------------------------------------------------------------- windows

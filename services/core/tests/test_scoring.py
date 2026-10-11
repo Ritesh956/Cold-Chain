@@ -10,7 +10,7 @@ from coldchain_core.mlclient import MlApiError
 from coldchain_core.repo import MemoryRepo
 from coldchain_core.scoring import Scorer
 from coldchain_schemas import AlertKind
-from conftest import MIN, T0, FakeMl, history, reading
+from core_helpers import MIN, T0, FakeMl, history, reading
 
 SETTINGS = Settings(score_every_min=1, max_chunk_min=30, min_coverage=0.95, alert_close_after_min=3)
 

@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from coldchain_ml_api.config import Settings
 from coldchain_ml_api.store import Models
-from conftest import anomaly_config, breach_model_and_config
+from mlapi_helpers import anomaly_config, breach_model_and_config
 from mlflow import MlflowClient
 
 

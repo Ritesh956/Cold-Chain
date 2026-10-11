@@ -9,7 +9,7 @@ import pytest
 from coldchain_core.pg import PgRepo
 from coldchain_core.repo import MemoryRepo
 from coldchain_schemas import Alert, AlertKind
-from conftest import MIN, T0, history, reading
+from core_helpers import MIN, T0, history, reading
 
 PG_URL = os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
 

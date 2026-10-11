@@ -23,7 +23,7 @@ from coldchain_core.events import Broadcaster
 from coldchain_schemas import AlertKind, SensorReading, subject_for
 from coldchain_schemas.streams import ALERT_STREAM, SENSOR_STREAM
 from coldchain_simulator import SimConfig, generate
-from conftest import MIN, FakeMl
+from core_helpers import MIN, FakeMl
 
 pytestmark = pytest.mark.integration
 

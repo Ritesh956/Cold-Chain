@@ -8,7 +8,7 @@ from coldchain_core.events import Broadcaster
 from coldchain_core.ingest import IngestWorker
 from coldchain_core.metrics import Metrics
 from coldchain_core.repo import MemoryRepo
-from conftest import FakeSource, history, reading
+from core_helpers import FakeSource, history, reading
 
 
 def val(counter, *labels) -> float:
