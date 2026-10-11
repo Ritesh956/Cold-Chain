@@ -10,6 +10,7 @@ import math
 from collections.abc import Iterator
 
 from coldchain_schemas import SensorReading, subject_for
+from coldchain_schemas.streams import SENSOR_MAX_AGE_S, SENSOR_STREAM, SENSOR_SUBJECTS
 
 from coldchain_simulator.config import SimConfig
 from coldchain_simulator.generate import generate
@@ -36,7 +37,7 @@ async def run(cfg: SimConfig, nats_url: str, speedup: float) -> None:
 
     nc = await nats.connect(nats_url)
     js = nc.jetstream()
-    await js.add_stream(name="SENSORS", subjects=["sensor.>"], max_age=7 * 24 * 3600)
+    await js.add_stream(name=SENSOR_STREAM, subjects=SENSOR_SUBJECTS, max_age=SENSOR_MAX_AGE_S)
     try:
         for batch in iter_readings(cfg):
             for reading in batch:

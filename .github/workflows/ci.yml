@@ -35,3 +35,51 @@ jobs:
         run: |
           docker run --rm coldchain-ml-api:ci python -c "import coldchain_ml_api.app, lightgbm, mlflow; print('ok')"
           test "$(docker run --rm coldchain-ml-api:ci id -u)" != "0"
+
+  docker-core-and-simulator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build core image
+        run: docker build -f services/core/Dockerfile -t coldchain-core:ci .
+      - name: Build simulator image
+        run: docker build -f services/simulator/Dockerfile -t coldchain-simulator:ci .
+      - name: Smoke test (imports, non-root)
+        run: |
+          docker run --rm coldchain-core:ci python -c "import coldchain_core.app, psycopg, nats, redis; print('ok')"
+          docker run --rm coldchain-simulator:ci python -c "import coldchain_simulator.publish, nats; print('ok')"
+          test "$(docker run --rm coldchain-core:ci id -u)" != "0"
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: timescale/timescaledb:2.17.2-pg16
+        env:
+          POSTGRES_USER: coldchain
+          POSTGRES_PASSWORD: coldchain_dev
+          POSTGRES_DB: coldchain
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U coldchain -d coldchain"
+          --health-interval 5s --health-timeout 3s --health-retries 15
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start NATS with JetStream
+        run: |
+          docker run -d --name nats -p 4222:4222 nats:2.10-alpine -js
+          for i in $(seq 1 30); do (echo > /dev/tcp/127.0.0.1/4222) 2>/dev/null && break; sleep 1; done
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-packages
+      - name: Integration tests (real NATS + Postgres/Timescale + Redis)
+        env:
+          DATABASE_URL: postgresql://coldchain:coldchain_dev@localhost:5432/coldchain
+          REDIS_URL: redis://localhost:6379/0
+          NATS_URL: nats://localhost:4222
+        run: uv run pytest services/core -m integration -v

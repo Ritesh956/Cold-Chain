@@ -53,3 +53,27 @@ class FaultEvent(BaseModel):
 def subject_for(reading: SensorReading) -> str:
     """NATS subject convention: sensor.temp.<zone>."""
     return f"sensor.temp.{reading.zone.lower()}"
+
+
+class AlertKind(StrEnum):
+    ANOMALY = "anomaly"  # readings abnormal (anomaly model)
+    BREACH_RISK = "breach_risk"  # at risk of exceeding the limit within the horizon (breach model)
+    BREACHED = "breached"  # temperature is above the limit now
+
+
+class Alert(BaseModel):
+    """An alert episode: opens when a model alarms, closes after a quiet period."""
+
+    id: int | None = None
+    zone: str
+    kind: AlertKind
+    severity: str  # "critical" for BREACHED, otherwise "warning"
+    opened_at: datetime
+    closed_at: datetime | None = None
+    peak_score: float | None = None
+    summary: str | None = None
+    model_version: str | None = None
+
+    @property
+    def is_active(self) -> bool:
+        return self.closed_at is None

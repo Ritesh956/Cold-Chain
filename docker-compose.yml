@@ -1,6 +1,8 @@
 # One-command local stack:  docker compose --profile core up -d
 # Profiles keep a 16 GB laptop comfortable: `core` = data plane + MLflow.
-# `ml` adds the model API (register models first, see README). `observability` and `vision` come later.
+# `ml` adds the model API (register models first, see README). `app` adds core; `sim` adds the live
+# SYNTHETIC sensor simulator. Everything:  docker compose --profile core --profile ml --profile app --profile sim up -d
+# `observability` and `vision` come later.
 name: coldchain
 
 x-env: &env
@@ -99,6 +101,36 @@ services:
       BREACH_MODEL_URI: models:/coldchain-breach@champion
     restart: on-failure  # fails fast if the registry has no champion yet
     ports: ["8080:8080"]
+
+  core:
+    build:
+      context: .
+      dockerfile: services/core/Dockerfile
+    profiles: [app]
+    depends_on:
+      nats: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    <<: *env
+    environment:
+      NATS_URL: nats://nats:4222
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      ML_API_URL: http://ml-api:8080
+      SCORE_EVERY_MIN: "5"   # event minutes between scoring calls (the simulator replays at 60x)
+    restart: on-failure
+    ports: ["8000:8080"]
+
+  simulator:
+    build:
+      context: .
+      dockerfile: services/simulator/Dockerfile
+    profiles: [sim]
+    depends_on:
+      nats: {condition: service_healthy}
+    environment:
+      NATS_URL: nats://nats:4222
+      SPEEDUP: "60"
 
 volumes:
   nats-data:
