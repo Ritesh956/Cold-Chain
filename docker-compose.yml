@@ -1,6 +1,6 @@
 # One-command local stack:  docker compose --profile core up -d
 # Profiles keep a 16 GB laptop comfortable: `core` = data plane + MLflow.
-# `ml` adds the model API (register models first, see README). `app` adds core; `sim` adds the live
+# `ml` adds the model API (register models first, see README). `app` adds core and the dashboard (http://localhost:3000); `sim` adds the live
 # SYNTHETIC sensor simulator. Everything:  docker compose --profile core --profile ml --profile app --profile sim up -d
 # `observability` adds the drift monitor, Prometheus and Grafana (start it with `ml` and `app`); `vision` comes later.
 name: coldchain
@@ -120,6 +120,16 @@ services:
       SCORE_EVERY_MIN: "5"   # event minutes between scoring calls (the simulator replays at 60x)
     restart: on-failure
     ports: ["8000:8080"]
+
+  dashboard:
+    build:
+      context: ./dashboard
+      args:
+        CORE_URL: http://core:8080
+        MONITOR_URL: http://monitor:8080
+    profiles: [app]
+    depends_on: [core]
+    ports: ["3000:3000"]
 
   simulator:
     build:

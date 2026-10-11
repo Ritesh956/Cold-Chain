@@ -91,7 +91,7 @@ Last updated 2026-10-12. The 8-week plan above is a work-package schedule, not e
 | OCR/barcode, damaged-pallet classifier | Not started | |
 | LLM assistant + eval harness | Not started | |
 | Drift monitor, Grafana | Built; compose config validated, **never run** (Docker was off) | [monitor](monitor.md), `services/monitor`, `infra/observability` |
-| Dashboard (Next.js) | Not started | |
+| Dashboard (Next.js) | Built; browser-checked against a no-Docker replay, Docker image not built locally | [dashboard](dashboard.md), `dashboard/` |
 | Cloud deployment | Not started; CI builds the images and runs integration tests on real NATS/TimescaleDB/Redis | |
 | README, model cards, results | Partial: README and 4 model cards/docs exist; no GIF, resume bullets or interview Q&A yet | |
 

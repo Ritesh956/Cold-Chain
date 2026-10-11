@@ -1,0 +1,262 @@
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --text: #14202b;
+  --muted: #5a6b7a;
+  --border: #d9e0e6;
+  --accent: #1d6fa5;
+  --ok: #1e7a4c;
+  --ok-bg: #e3f4ea;
+  --warn: #8a5a00;
+  --warn-bg: #fdf0d2;
+  --crit: #a3262a;
+  --crit-bg: #fbe3e3;
+  --nodata: #5a6b7a;
+  --nodata-bg: #e8edf1;
+  --grid: #e3e8ec;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f161c;
+    --surface: #17212a;
+    --text: #e6edf2;
+    --muted: #9bacba;
+    --border: #2a3944;
+    --accent: #6cb4e4;
+    --ok: #6fd3a1;
+    --ok-bg: #153a28;
+    --warn: #f0c46a;
+    --warn-bg: #3d2f0e;
+    --crit: #ff8a8d;
+    --crit-bg: #461a1c;
+    --nodata: #9bacba;
+    --nodata-bg: #212e38;
+    --grid: #25323c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--nodata);
+}
+.dot-live {
+  background: var(--ok);
+}
+.dot-reconnecting,
+.dot-connecting {
+  background: var(--warn);
+}
+.dot-offline {
+  background: var(--crit);
+}
+
+.banner {
+  background: var(--crit-bg);
+  color: var(--crit);
+  border: 1px solid var(--crit);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.zones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.zone header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.zone.health-warning {
+  border-color: var(--warn);
+}
+.zone.health-critical {
+  border-color: var(--crit);
+  border-width: 2px;
+}
+
+.readout {
+  display: flex;
+  gap: 32px;
+  margin: 4px 0 8px;
+}
+
+.big {
+  font-size: 2.2rem;
+  font-weight: 650;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.big small {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+.mid {
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.pill {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pill-ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.pill-warning {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.pill-critical {
+  background: var(--crit-bg);
+  color: var(--crit);
+}
+.pill-no-data {
+  background: var(--nodata-bg);
+  color: var(--nodata);
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.chart-empty {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+.chart .line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+}
+.chart .grid {
+  stroke: var(--grid);
+}
+.chart .limit {
+  stroke: var(--crit);
+  stroke-dasharray: 5 4;
+}
+.chart .axis {
+  fill: var(--muted);
+  font-size: 10px;
+}
+.chart .limit-label {
+  fill: var(--crit);
+}
+.chart .span-warning {
+  fill: var(--warn-bg);
+  opacity: 0.8;
+}
+.chart .span-critical {
+  fill: var(--crit-bg);
+  opacity: 0.9;
+}
+
+.open-alerts {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.lower {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr));
+  gap: 16px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th,
+td {
+  text-align: left;
+  padding: 6px 10px 6px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .readout {
+    gap: 20px;
+  }
+}

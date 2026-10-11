@@ -7,9 +7,9 @@ text classification, and an LLM assistant that answers from the platform's own d
 > **Status: partial build.** Done: the sensor simulator, the data plane, two freezer models (anomaly
 > detection, breach early warning) with a real-data sanity check, an incident-report classifier
 > (DistilBERT, ONNX int8), the model-serving API for all three, and the `core` service (ingest,
-> history, alerts, live API) and the drift monitor with a Prometheus/Grafana setup (config-validated
-> only, never run). **Not built yet:** demand forecasting and slotting (waiting on the M5
-> dataset), computer vision (YOLO, tracking, OCR), the LLM assistant, the dashboard, and any cloud
+> history, alerts, live API), the drift monitor with a Prometheus/Grafana setup (config-validated
+> only, never run), and a live dashboard (Next.js). **Not built yet:** demand forecasting and slotting
+> (waiting on the M5 dataset), computer vision (YOLO, tracking, OCR), the LLM assistant, and any cloud
 > deployment. The results table holds measured numbers only.
 
 Inspired by public descriptions of highly automated frozen warehouses. It is not affiliated
@@ -17,7 +17,7 @@ with, and does not use data from, any real operator. **All sensor data and all i
 synthetic** (see [docs/data-sheet.md](docs/data-sheet.md)); the only real data used is one public
 machine-temperature series for a sanity check.
 
-Plan and architecture: [docs/PROPOSAL.md](docs/PROPOSAL.md).
+Plan and architecture: [docs/PROPOSAL.md](docs/PROPOSAL.md). Dashboard: [docs/dashboard.md](docs/dashboard.md).
 
 ## Quick start
 
