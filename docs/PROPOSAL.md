@@ -90,7 +90,8 @@ Last updated 2026-10-12. The 8-week plan above is a work-package schedule, not e
 | CVAT labelling, YOLO, tracking, ONNX/INT8 for vision, RTSP worker | Not started | |
 | OCR/barcode, damaged-pallet classifier | Not started | |
 | LLM assistant + eval harness | Not started | |
-| Dashboard, drift monitor, Grafana | Not started (the ml-api already exports score histograms for the drift monitor) | |
+| Drift monitor, Grafana | Built; compose config validated, **never run** (Docker was off) | [monitor](monitor.md), `services/monitor`, `infra/observability` |
+| Dashboard (Next.js) | Not started | |
 | Cloud deployment | Not started; CI builds the images and runs integration tests on real NATS/TimescaleDB/Redis | |
 | README, model cards, results | Partial: README and 4 model cards/docs exist; no GIF, resume bullets or interview Q&A yet | |
 

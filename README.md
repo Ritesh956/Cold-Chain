@@ -7,9 +7,10 @@ text classification, and an LLM assistant that answers from the platform's own d
 > **Status: partial build.** Done: the sensor simulator, the data plane, two freezer models (anomaly
 > detection, breach early warning) with a real-data sanity check, an incident-report classifier
 > (DistilBERT, ONNX int8), the model-serving API for all three, and the `core` service (ingest,
-> history, alerts, live API). **Not built yet:** demand forecasting and slotting (waiting on the M5
-> dataset), computer vision (YOLO, tracking, OCR), the LLM assistant, the dashboard, the drift
-> monitor and Grafana, and any cloud deployment. The results table holds measured numbers only.
+> history, alerts, live API) and the drift monitor with a Prometheus/Grafana setup (config-validated
+> only, never run). **Not built yet:** demand forecasting and slotting (waiting on the M5
+> dataset), computer vision (YOLO, tracking, OCR), the LLM assistant, the dashboard, and any cloud
+> deployment. The results table holds measured numbers only.
 
 Inspired by public descriptions of highly automated frozen warehouses. It is not affiliated
 with, and does not use data from, any real operator. **All sensor data and all incident text are
@@ -74,6 +75,7 @@ Every row has a baseline, a stated split and a model card or doc. Rows are added
 | Incident classification (4 classes) | **Synthetic** text; test = 960 reports from unseen template families, plus 120 hand-written | TF-IDF + logistic regression: macro-F1 **0.755** test / **0.799** independent | DistilBERT fine-tuned, 3 seeds, served as ONNX int8 | **No measurable gain over the baseline:** 0.733 ± 0.014 test, 0.792 ± 0.067 independent. int8 is 4.0x faster than PyTorch on one thread (82 to 21 ms) and 4x smaller, but its labels depend on the batch, so it scores one report at a time. | [card](docs/model-cards/incident-nlp.md) |
 | Model serving (ml-api) | Real 1-minute windows from simulator histories; incident reports | n/a (service) | FastAPI, three models from the MLflow registry, features shared with training | One worker: anomaly p50 36 ms / p95 56 ms, breach p50 98 / 109 ms, incident (1 report) p50 28.5 ms. Does not scale with threads (GIL). A registry gate refused one model for a real problem. | [doc](docs/ml-api.md) |
 | Pipeline (`core`) | Simulated 7-day history through real NATS, TimescaleDB, Redis (CI) | n/a (plumbing) | Idempotent ingest, scorer that never skips minutes, alert state machine | Stored exactly once (also after republishing); alerts equal the offline expectation. On a real 22-min door fault: breach-risk warning 6 min before the crossing. | [doc](docs/core.md) |
+| Drift monitor | Synthetic zone-days (360), with injected sensor bias and compressor drift | n/a (statistics) | PSI on live inputs vs training reference; PSI on model scores vs early baseline | 1 of 272 anomaly-free days flagged; every injected shift (+0.5 C, current +10%, stuck compressor) flagged on 272 of 272. Easy case: low-noise synthetic data. | [doc](docs/monitor.md) |
 
 _Synthetic-data results measure fit to my simulator and generator, not real-world performance._
 

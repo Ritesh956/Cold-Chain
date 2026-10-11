@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate compose file
-        run: cp .env.example .env && docker compose --profile core config -q
+        run: cp .env.example .env && docker compose --profile core --profile ml --profile app --profile sim --profile observability config -q
 
   docker-ml-api:
     runs-on: ubuntu-latest
@@ -44,8 +44,12 @@ jobs:
         run: docker build -f services/core/Dockerfile -t coldchain-core:ci .
       - name: Build simulator image
         run: docker build -f services/simulator/Dockerfile -t coldchain-simulator:ci .
+      - name: Build monitor image
+        run: docker build -f services/monitor/Dockerfile -t coldchain-monitor:ci .
       - name: Smoke test (imports, non-root)
         run: |
+          docker run --rm coldchain-monitor:ci python -c "import coldchain_monitor.app as a, coldchain_monitor.reference as r; r.load(); print('ok')"
+          test "$(docker run --rm coldchain-monitor:ci id -u)" != "0"
           docker run --rm coldchain-core:ci python -c "import coldchain_core.app, psycopg, nats, redis; print('ok')"
           docker run --rm coldchain-simulator:ci python -c "import coldchain_simulator.publish, nats; print('ok')"
           test "$(docker run --rm coldchain-core:ci id -u)" != "0"

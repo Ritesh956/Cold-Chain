@@ -12,7 +12,7 @@ dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11", "pandas-stubs", "httpx>=0.27", "f
 nlp = ["torch>=2.4,<3", "transformers>=4.45,<5", "onnx>=1.17", "onnxruntime>=1.20", "safetensors>=0.4"]
 
 [tool.uv.workspace]
-members = ["libs/*", "services/simulator", "services/ml-api", "services/core", "ml"]
+members = ["libs/*", "services/simulator", "services/ml-api", "services/core", "services/monitor", "ml"]
 
 [tool.uv.sources]
 coldchain-schemas = { workspace = true }
@@ -20,6 +20,7 @@ coldchain-simulator = { workspace = true }
 coldchain-ml = { workspace = true }
 coldchain-ml-api = { workspace = true }
 coldchain-core = { workspace = true }
+coldchain-monitor = { workspace = true }
 
 [tool.ruff]
 line-length = 110

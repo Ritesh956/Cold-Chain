@@ -14,6 +14,7 @@ members = [
     "coldchain-core",
     "coldchain-ml",
     "coldchain-ml-api",
+    "coldchain-monitor",
     "coldchain-schemas",
     "coldchain-simulator",
 ]
@@ -488,6 +489,27 @@ dependencies = [
 requires-dist = [
     { name = "coldchain-ml", editable = "ml" },
     { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "prometheus-client", specifier = ">=0.21,<1" },
+    { name = "uvicorn", specifier = ">=0.32,<1" },
+]
+
+[[package]]
+name = "coldchain-monitor"
+version = "0.1.0"
+source = { editable = "services/monitor" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "numpy" },
+    { name = "prometheus-client" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "httpx", specifier = ">=0.27,<1" },
+    { name = "numpy", specifier = ">=2.0,<3" },
     { name = "prometheus-client", specifier = ">=0.21,<1" },
     { name = "uvicorn", specifier = ">=0.32,<1" },
 ]

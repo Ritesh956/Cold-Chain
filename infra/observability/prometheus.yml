@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: core
+    static_configs: [{targets: ["core:8080"]}]
+  - job_name: ml-api
+    static_configs: [{targets: ["ml-api:8080"]}]
+  - job_name: monitor
+    static_configs: [{targets: ["monitor:8080"]}]

@@ -1,0 +1,79 @@
+[
+  {
+    "scenario": "none, days with an injected fault",
+    "zone_days": 88,
+    "days_flagged_drift": 46,
+    "share_flagged": 0.5227272727272727,
+    "flagged_by_feature": {
+      "compressor_current_a": 43,
+      "temp_c": 25,
+      "compressor_on": 19
+    }
+  },
+  {
+    "scenario": "none (normal operation)",
+    "zone_days": 272,
+    "days_flagged_drift": 1,
+    "share_flagged": 0.003676470588235294,
+    "flagged_by_feature": {
+      "temp_c": 1
+    }
+  },
+  {
+    "scenario": "temperature sensor +0.5 C",
+    "zone_days": 272,
+    "days_flagged_drift": 272,
+    "share_flagged": 1.0,
+    "flagged_by_feature": {
+      "temp_c": 272
+    }
+  },
+  {
+    "scenario": "temperature sensor +1.0 C",
+    "zone_days": 272,
+    "days_flagged_drift": 272,
+    "share_flagged": 1.0,
+    "flagged_by_feature": {
+      "temp_c": 272
+    }
+  },
+  {
+    "scenario": "temperature sensor +2.0 C",
+    "zone_days": 272,
+    "days_flagged_drift": 272,
+    "share_flagged": 1.0,
+    "flagged_by_feature": {
+      "temp_c": 272
+    }
+  },
+  {
+    "scenario": "compressor current +10 %",
+    "zone_days": 272,
+    "days_flagged_drift": 272,
+    "share_flagged": 1.0,
+    "flagged_by_feature": {
+      "compressor_current_a": 272,
+      "temp_c": 1
+    }
+  },
+  {
+    "scenario": "compressor current +25 %",
+    "zone_days": 272,
+    "days_flagged_drift": 272,
+    "share_flagged": 1.0,
+    "flagged_by_feature": {
+      "compressor_current_a": 272,
+      "temp_c": 1
+    }
+  },
+  {
+    "scenario": "compressor stuck on",
+    "zone_days": 272,
+    "days_flagged_drift": 272,
+    "share_flagged": 1.0,
+    "flagged_by_feature": {
+      "compressor_on": 272,
+      "temp_c": 1
+    }
+  }
+]
