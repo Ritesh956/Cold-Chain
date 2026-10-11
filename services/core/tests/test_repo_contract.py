@@ -11,6 +11,9 @@ from coldchain_core.repo import MemoryRepo
 from coldchain_schemas import Alert, AlertKind
 from core_helpers import MIN, T0, history, reading
 
+# a TimescaleDB hypertable cannot be dropped in the same statement as other tables
+RESET_SQL = "DROP TABLE IF EXISTS readings CASCADE; DROP TABLE IF EXISTS zones, alerts, scoring_state CASCADE"
+
 PG_URL = os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
 
 
@@ -26,7 +29,7 @@ async def repo(request):
     import psycopg
 
     with psycopg.connect(PG_URL, autocommit=True) as c:
-        c.execute("DROP TABLE IF EXISTS readings CASCADE; DROP TABLE IF EXISTS zones, alerts, scoring_state CASCADE")
+        c.execute(RESET_SQL)
     r = PgRepo(PG_URL)
     await r.init()
     yield r

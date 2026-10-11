@@ -30,6 +30,9 @@ pytestmark = pytest.mark.integration
 NATS_URL, DATABASE_URL, REDIS_URL = (os.getenv(k) for k in ("NATS_URL", "DATABASE_URL", "REDIS_URL"))
 needs_infra = pytest.mark.skipif(not (NATS_URL and DATABASE_URL and REDIS_URL), reason="infra env not set")
 
+# a TimescaleDB hypertable cannot be dropped in the same statement as other tables
+RESET_SQL = "DROP TABLE IF EXISTS readings CASCADE; DROP TABLE IF EXISTS zones, alerts, scoring_state CASCADE"
+
 SETTINGS = Settings(
     nats_url=NATS_URL or "",
     database_url=DATABASE_URL or "",
@@ -96,7 +99,7 @@ async def test_history_flows_from_nats_to_postgres_and_raises_alerts():
         with contextlib.suppress(Exception):  # absent on a fresh server
             await js.delete_stream(stream)
     with psycopg.connect(DATABASE_URL, autocommit=True) as c:
-        c.execute("DROP TABLE IF EXISTS readings CASCADE; DROP TABLE IF EXISTS zones, alerts, scoring_state CASCADE")
+        c.execute(RESET_SQL)
 
     broadcaster = Broadcaster()
     deps = await build_default_deps(SETTINGS, broadcaster)
