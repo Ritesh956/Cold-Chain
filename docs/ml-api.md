@@ -110,8 +110,9 @@ uv run uvicorn coldchain_ml_api.app:create_app --factory --port 8081
 
 With Docker: `docker compose --profile core --profile ml up -d --build`, then run `promote` with
 `MLFLOW_TRACKING_URI=http://localhost:5000` so the registry inside Compose has a champion.
-**The Dockerfile and Compose service have not been built or run yet** (Docker was not running on
-the development machine); only `docker compose config` was validated.
+**Verified:** the image builds in CI (GitHub Actions), imports its dependencies and runs as a
+non-root user. **Not verified yet:** running the Compose stack end to end (Docker was not running
+on the development machine), i.e. the container loading models from the Compose MLflow server.
 
 ## Limitations
 
