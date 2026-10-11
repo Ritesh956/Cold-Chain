@@ -70,7 +70,7 @@ async def test_history_flows_from_nats_to_postgres_and_raises_alerts():
 
     # a short simulated history with real injected faults (door left open, power cut)
     cfg = replace(
-        SimConfig(), days=5, zones=("A",), seed=11, n_door_left_open=2, n_power_cut=1, n_compressor_drift=0
+        SimConfig(), days=7, zones=("A",), seed=11, n_door_left_open=2, n_power_cut=1, n_compressor_drift=0
     )
     readings_df, _ = generate(cfg)
     rows = [
@@ -96,7 +96,7 @@ async def test_history_flows_from_nats_to_postgres_and_raises_alerts():
         with contextlib.suppress(Exception):  # absent on a fresh server
             await js.delete_stream(stream)
     with psycopg.connect(DATABASE_URL, autocommit=True) as c:
-        c.execute("DROP TABLE IF EXISTS readings, zones, alerts, scoring_state CASCADE")
+        c.execute("DROP TABLE IF EXISTS readings CASCADE; DROP TABLE IF EXISTS zones, alerts, scoring_state CASCADE")
 
     broadcaster = Broadcaster()
     deps = await build_default_deps(SETTINGS, broadcaster)

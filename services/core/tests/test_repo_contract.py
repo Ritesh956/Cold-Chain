@@ -26,7 +26,7 @@ async def repo(request):
     import psycopg
 
     with psycopg.connect(PG_URL, autocommit=True) as c:
-        c.execute("DROP TABLE IF EXISTS readings, zones, alerts, scoring_state CASCADE")
+        c.execute("DROP TABLE IF EXISTS readings CASCADE; DROP TABLE IF EXISTS zones, alerts, scoring_state CASCADE")
     r = PgRepo(PG_URL)
     await r.init()
     yield r
