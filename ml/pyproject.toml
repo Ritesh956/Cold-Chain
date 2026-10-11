@@ -4,16 +4,16 @@ version = "0.1.0"
 description = "Training and evaluation code for ColdChain AI models"
 requires-python = ">=3.12"
 dependencies = [
-    "coldchain-simulator",
     "numpy>=2.0,<3",
     "pandas>=2.2,<3",
-    "pyarrow>=17",
-    "scipy>=1.13",
     "scikit-learn>=1.5,<2",
     "lightgbm>=4.5,<5",
     "mlflow-skinny>=2.17,<3",
-    "matplotlib>=3.9,<4",
 ]
+
+[project.optional-dependencies]
+# only needed to train/evaluate, not to serve
+train = ["coldchain-simulator", "pyarrow>=17", "matplotlib>=3.9,<4"]
 
 [build-system]
 requires = ["hatchling"]

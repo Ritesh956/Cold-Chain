@@ -17,6 +17,8 @@ BREACH_C = -18.0  # frozen-food limit
 HORIZON = 30  # minutes ahead
 RECENT_MIN = 10
 
+RUN_CAP_MIN = 1440  # on_run/off_run saturate here so a trailing window reproduces training features
+
 BREACH_FEATURES = [
     *MODEL_FEATURES,
     "gap_c",
@@ -28,9 +30,9 @@ BREACH_FEATURES = [
 
 
 def _run_length(b: pd.Series) -> pd.Series:
-    """Consecutive-True run length ending at each row (0 where False)."""
+    """Consecutive-True run length ending at each row (0 where False), capped at RUN_CAP_MIN."""
     grp = (b != b.shift()).cumsum()
-    return (b.groupby(grp).cumcount() + 1).where(b, 0)
+    return (b.groupby(grp).cumcount() + 1).where(b, 0).clip(upper=RUN_CAP_MIN)
 
 
 def _zone_frame(readings: pd.DataFrame, feats: pd.DataFrame) -> pd.DataFrame:

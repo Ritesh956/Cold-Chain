@@ -11,6 +11,7 @@ resolution-markers = [
 members = [
     "coldchain-ai",
     "coldchain-ml",
+    "coldchain-ml-api",
     "coldchain-schemas",
     "coldchain-simulator",
 ]
@@ -369,6 +370,8 @@ source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "coldchain-ml", extra = ["train"] },
+    { name = "httpx" },
     { name = "mypy" },
     { name = "pandas-stubs" },
     { name = "pytest" },
@@ -379,6 +382,8 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "coldchain-ml", extras = ["train"], editable = "ml" },
+    { name = "httpx", specifier = ">=0.27" },
     { name = "mypy", specifier = ">=1.11" },
     { name = "pandas-stubs" },
     { name = "pytest", specifier = ">=8" },
@@ -390,28 +395,50 @@ name = "coldchain-ml"
 version = "0.1.0"
 source = { editable = "ml" }
 dependencies = [
-    { name = "coldchain-simulator" },
     { name = "lightgbm" },
-    { name = "matplotlib" },
     { name = "mlflow-skinny" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "pyarrow" },
     { name = "scikit-learn" },
-    { name = "scipy" },
+]
+
+[package.optional-dependencies]
+train = [
+    { name = "coldchain-simulator" },
+    { name = "matplotlib" },
+    { name = "pyarrow" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "coldchain-simulator", editable = "services/simulator" },
+    { name = "coldchain-simulator", marker = "extra == 'train'", editable = "services/simulator" },
     { name = "lightgbm", specifier = ">=4.5,<5" },
-    { name = "matplotlib", specifier = ">=3.9,<4" },
+    { name = "matplotlib", marker = "extra == 'train'", specifier = ">=3.9,<4" },
     { name = "mlflow-skinny", specifier = ">=2.17,<3" },
     { name = "numpy", specifier = ">=2.0,<3" },
     { name = "pandas", specifier = ">=2.2,<3" },
-    { name = "pyarrow", specifier = ">=17" },
+    { name = "pyarrow", marker = "extra == 'train'", specifier = ">=17" },
     { name = "scikit-learn", specifier = ">=1.5,<2" },
-    { name = "scipy", specifier = ">=1.13" },
+]
+provides-extras = ["train"]
+
+[[package]]
+name = "coldchain-ml-api"
+version = "0.1.0"
+source = { editable = "services/ml-api" }
+dependencies = [
+    { name = "coldchain-ml" },
+    { name = "fastapi" },
+    { name = "prometheus-client" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "coldchain-ml", editable = "ml" },
+    { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "prometheus-client", specifier = ">=0.21,<1" },
+    { name = "uvicorn", specifier = ">=0.32,<1" },
 ]
 
 [[package]]
@@ -745,6 +772,34 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6fb3c75474d40b3052059d95df7e73351460c8588d963/h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1", size = 101250, upload-time = "2025-04-24T03:35:25.427Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
+]
+
+[[package]]
+name = "httpcore"
+version = "1.0.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/06/94/82699a10bca87a5556c9c59b5963f2d039dbd239f25bc2a63907a05a14cb/httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8", size = 85484, upload-time = "2025-04-24T22:06:22.219Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55", size = 78784, upload-time = "2025-04-24T22:06:20.566Z" },
+]
+
+[[package]]
+name = "httpx"
+version = "0.28.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "certifi" },
+    { name = "httpcore" },
+    { name = "idna" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
 ]
 
 [[package]]
@@ -1455,6 +1510,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
+]
+
+[[package]]
+name = "prometheus-client"
+version = "0.26.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/52/73/f1334c29c2af4cd9dba6c7817e61b611bd0215e2eb5565c6064a4de18802/prometheus_client-0.26.0.tar.gz", hash = "sha256:04a91bcf94e2cf74a44a1a874d651a2e853ed354b6e822f3b7487751465d5c2b", size = 92910, upload-time = "2026-07-24T19:36:41.893Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/eb/a3/b69efbf4143b5b9859b977770bbbabcc2796b702fa69dc40271e45cd5a56/prometheus_client-0.26.0-py3-none-any.whl", hash = "sha256:fa93d06737aa02bacd05794768508bb97d2fbee28cb3bca04eaae92f0ca953d6", size = 64494, upload-time = "2026-07-24T19:36:40.854Z" },
 ]
 
 [[package]]

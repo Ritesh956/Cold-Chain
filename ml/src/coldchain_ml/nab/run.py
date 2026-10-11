@@ -19,10 +19,6 @@ import json
 import math
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
 import mlflow  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
@@ -158,6 +154,11 @@ def to_markdown(res: dict, notes: dict, n_scored_days: float) -> str:
 
 
 def plot(s: NabSeries, test_start: int, alarms: dict[str, np.ndarray], path: Path) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
     fig, ax = plt.subplots(figsize=(13, 4.6))
     ts, v = s.df["timestamp"], s.df["value"]
     ax.plot(ts, v, lw=0.5, color="#1f2a44")
