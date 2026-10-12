@@ -7,8 +7,9 @@ text classification, and an LLM assistant that answers from the platform's own d
 > **Status: partial build.** Done: the sensor simulator, the data plane, two freezer models (anomaly
 > detection, breach early warning) with a real-data sanity check, an incident-report classifier
 > (DistilBERT, ONNX int8), the model-serving API for all three, and the `core` service (ingest,
-> history, alerts, live API), the drift monitor with a Prometheus/Grafana setup (config-validated
-> only, never run), and a live dashboard (Next.js). **Not built yet:** demand forecasting and slotting
+> history, alerts with acknowledgement and an optional webhook, incident reports, shared-key auth, opt-in
+> retention), the drift monitor with a Prometheus/Grafana setup (config-validated only, never run), and a live
+> dashboard (Next.js). **Not built yet:** demand forecasting and slotting
 > (waiting on the M5 dataset), computer vision (YOLO, tracking, OCR), the LLM assistant, and any cloud
 > deployment. The results table holds measured numbers only.
 

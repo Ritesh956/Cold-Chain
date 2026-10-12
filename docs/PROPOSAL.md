@@ -76,7 +76,7 @@ Cut order if time runs out: damage classifier → HDBSCAN → Helm.
 
 ## Progress and deviations
 
-Last updated 2026-10-12. The 8-week plan above is a work-package schedule, not elapsed calendar time.
+Last updated 2026-10-12 (after the auth, webhook, incident and anomaly follow-ups). The 8-week plan above is a work-package schedule, not elapsed calendar time.
 
 | Plan item | Status | Where |
 |---|---|---|
@@ -84,8 +84,8 @@ Last updated 2026-10-12. The 8-week plan above is a work-package schedule, not e
 | Freezer anomaly detection (baselines vs models, event-level metrics) | Done, synthetic + a 3-failure real-data check | [model card](model-cards/anomaly.md) |
 | Breach early warning | Done, synthetic | [model card](model-cards/breach.md) |
 | Model serving + MLflow registry + metrics | Done | [ml-api](ml-api.md) |
-| `core` (NATS ingest, Postgres history, alerts, live API) | Done (built ahead of its planned week) | [core](core.md) |
-| Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF** | [model card](model-cards/incident-nlp.md) |
+| `core` (NATS ingest, Postgres history, alerts, live API) | Done (built ahead of its planned week); since then: incident reports, alert acknowledgement and webhook, shared-key auth, opt-in retention | [core](core.md) |
+| Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF**; connected to `core` and the dashboard; no real-text check yet | [model card](model-cards/incident-nlp.md) |
 | Forecasting and clustering/slotting | Not started (needs the Kaggle M5 token) | |
 | CVAT labelling, YOLO, tracking, ONNX/INT8 for vision, RTSP worker | Not started | |
 | OCR/barcode, damaged-pallet classifier | Not started | |
