@@ -1,0 +1,113 @@
+{
+  "model_version": "1",
+  "source_rows": 105993,
+  "seed": 0,
+  "random_sample": {
+    "n": 3000,
+    "safety_recall": 0.887,
+    "safety_recall_ci95": [
+      0.8751723735373472,
+      0.897837761218094
+    ],
+    "label_counts": {
+      "safety": 2661,
+      "delay": 159,
+      "temperature": 95,
+      "damage": 85
+    },
+    "needs_review_share": 0.2683333333333333,
+    "confident_n": 2195,
+    "confident_safety_share": 0.9708428246013667,
+    "median_confidence_by_label": {
+      "damage": 0.802,
+      "delay": 0.812,
+      "safety": 0.993,
+      "temperature": 0.833
+    }
+  },
+  "refrigerated_warehousing_naics_493120": {
+    "n": 340,
+    "safety_recall": 0.8294117647058824,
+    "safety_recall_ci95": [
+      0.7858023101526254,
+      0.8656604564236122
+    ],
+    "label_counts": {
+      "safety": 282,
+      "damage": 31,
+      "delay": 21,
+      "temperature": 6
+    },
+    "needs_review_share": 0.3588235294117647,
+    "confident_n": 218,
+    "confident_safety_share": 0.8944954128440367,
+    "median_confidence_by_label": {
+      "damage": 0.831,
+      "delay": 0.974,
+      "safety": 0.988,
+      "temperature": 0.988
+    }
+  },
+  "examples_not_safety": [
+    {
+      "pred": "delay",
+      "confidence": 0.94,
+      "text": "A delivery driver was organizing his truck for daily deliveries and fell from the liftgate to the ground. The employee suffered a dislocated/fractured elbow."
+    },
+    {
+      "pred": "delay",
+      "confidence": 0.94,
+      "text": "An employee had been detailing batteries. The employee had a physical altercation with a coworker and sustained a right leg fracture."
+    },
+    {
+      "pred": "delay",
+      "confidence": 0.5,
+      "text": "At 9:45 p.m. on February 23, 2022, a guard slipped and fell while walking security rounds near a dock door. The employee landed on the ground and suffered a broken pelvis, as well as a soft tissue injury."
+    },
+    {
+      "pred": "damage",
+      "confidence": 0.9,
+      "text": "An employee was removing concrete forms and loading them onto a flatbed tractor trailer when his left index finger got caught in the chain rigging that was in use to move the forms.  The load shifted and amputated his le"
+    },
+    {
+      "pred": "damage",
+      "confidence": 0.87,
+      "text": "On May 15, 2015, an employee picked up an approximately 20-pound box of oil, sat it back down, and experienced pain in his left arm and back. He later found out he pulled a muscle and had a collapsed lung."
+    },
+    {
+      "pred": "damage",
+      "confidence": 0.64,
+      "text": "On April 2, 2020, an employee was sending pieces of wood stock through a chop saw's infeed table. The wood jammed, and the sawblade cut the top of the employee's left hand while he tried to clear the machine."
+    },
+    {
+      "pred": "temperature",
+      "confidence": 0.92,
+      "text": "An employee was replacing an LED light fixture in the box room, and working to identify why it was not functioning. The employee sustained an electrical shock that resulted in a cardiac event requiring hospitalization."
+    },
+    {
+      "pred": "delay",
+      "confidence": 0.54,
+      "text": "An employee was working to set a drive pin on an S-hook so a forklift could pick up a part and bring it to the paint department. The employee's left middle finger was pinched between the pin and the S-hook resulting in a"
+    },
+    {
+      "pred": "damage",
+      "confidence": 0.98,
+      "text": "An employee was using a forklift to restack pallets. The employee's left index finger was caught between the lift and pallet as the employee was sliding a pallet off resulting in a partial amputation."
+    },
+    {
+      "pred": "delay",
+      "confidence": 0.98,
+      "text": "At 6:49 AM, on April 2, 2024, an employee was assembling grinder equipment and installing the cylinder of the equipment when their left index finger became pinched between the cylinder and the grinding equipment. This re"
+    },
+    {
+      "pred": "delay",
+      "confidence": 0.92,
+      "text": "An employee was delivering packages. He experienced a gradual onset of cramping in his arms and legs, followed by nausea. He was hospitalized for treatment of heat stress and dehydration."
+    },
+    {
+      "pred": "temperature",
+      "confidence": 0.98,
+      "text": "An employee was checking a recompression evaporator when a moving fan blade inside the machine lacerated his left ring and little fingers. The employee underwent surgery, and the little finger was medically amputated."
+    }
+  ]
+}

@@ -85,7 +85,7 @@ Last updated 2026-10-12 (after the auth, webhook, incident and anomaly follow-up
 | Breach early warning | Done, synthetic | [model card](model-cards/breach.md) |
 | Model serving + MLflow registry + metrics | Done | [ml-api](ml-api.md) |
 | `core` (NATS ingest, Postgres history, alerts, live API) | Done (built ahead of its planned week); since then: incident reports, alert acknowledgement and webhook, shared-key auth, opt-in retention | [core](core.md) |
-| Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF**; connected to `core` and the dashboard; no real-text check yet | [model card](model-cards/incident-nlp.md) |
+| Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF**; connected to `core` and the dashboard; real-text check done: safety recall 0.89 (0.83 in cold storage) | [model card](model-cards/incident-nlp.md) |
 | Forecasting and clustering/slotting | Not started (needs the Kaggle M5 token) | |
 | CVAT labelling, YOLO, tracking, ONNX/INT8 for vision, RTSP worker | Not started | |
 | OCR/barcode, damaged-pallet classifier | Not started | |
@@ -98,7 +98,7 @@ Last updated 2026-10-12 (after the auth, webhook, incident and anomaly follow-up
 Deviations from the plan, and why:
 
 - **Incident text is generated programmatically, not by an LLM.** No free LLM key was available yet.
-  The generator is deterministic and tested for leakage; the OSHA real-text check was **not** done.
+  The generator is deterministic and tested for leakage; the OSHA real-text check was done later (one-sided, safety recall 0.89; see the model card).
   A 120-report independent set was written by the AI assistant (synthetic, labelled as such).
 - **The BERT result is "no measurable gain".** The plan asked for a model that is compared honestly with
   a baseline; it is, and the baseline ties. The transformer is still the served model because the project

@@ -44,8 +44,10 @@ compressor-current signal, which no public dataset has.
 **Your BERT model did not beat TF-IDF. Why ship it?**
 Because the comparison was the point and the result is honest: 0.733 ± 0.014 vs 0.755 macro-F1 on held-out
 families. The corpus is template-generated, so a bag-of-words model can reach most of what is learnable;
-a transformer should matter on real, messy text, which I have not tested (the OSHA real-text check was not
-done). I kept it served because the project demonstrates the serving stack (ONNX int8, registry gate), and the
+a transformer should matter on real, messy text, so I tested it: 3,000 real OSHA injury narratives, all of which
+should be `safety`. It said safety for 89% (83% for refrigerated-warehouse reports), and some misses carried
+scores above 0.9, so the confidence score cannot be trusted to catch them. That is one class only; I have no real
+text for the others. I kept it served because the project demonstrates the serving stack (ONNX int8, registry gate), and the
 card says when to switch to the baseline.
 
 **Why event-level metrics instead of F1 per minute?**
@@ -79,7 +81,8 @@ unchanged. It also flags real faults, since a fault day looks different from the
 were flagged, so a flag is not by itself a model problem. Score drift is relative to deployment, not validation.
 
 **What would you do differently, or do next?**
-Test the incident model on real text (OSHA); put TLS in front of the services (the API-key auth is only as safe
+Fix the incident model's real-text weakness (it was not trained on, and nothing was tuned with, the OSHA text, so a
+held-out slice is still clean) and get real text for the other classes; put TLS in front of the services (the API-key auth is only as safe
 as the channel it travels on); bring
 the full Compose stack up end to end (CI builds the images and runs integration tests, but I have not run the
 whole stack in Docker locally); and finish the parts not built: forecasting/slotting, vision, the LLM assistant.

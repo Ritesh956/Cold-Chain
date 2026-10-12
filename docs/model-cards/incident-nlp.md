@@ -22,7 +22,8 @@ label is the main one.
   not reuse the generator's templates. **Provenance: written by the AI assistant that built this
   project. Not collected from a warehouse, not written by the project owner. Still synthetic.** Its
   value is distribution shift. Used once, after the model was chosen on validation.
-- A real-text check (OSHA injury narratives, safety class only) was planned and is **not done**.
+- A real-text check on OSHA injury narratives (safety class only) is done; see
+  [Real-text check](#real-text-check-osha-safety-class-only).
 
 ## Models compared
 | Model | Notes |
@@ -90,13 +91,37 @@ should matter. **That is a bet, not a finding.** With real reports, rerun
 - **Model selection.** I first exported seed 0 before seeing the others. My protocol selects by
   validation only, so I re-exported seed 1.
 
+## Real-text check (OSHA, safety class only)
+Full table: [results/incident_osha.md](../results/incident_osha.md); script `scripts/osha_check.py`. Every OSHA
+severe-injury narrative is a workplace injury, so the right label is `safety` for all of them. The model never
+saw real text. **One-sided:** this measures recall on one class on industrial text; it cannot measure precision
+or the other three classes.
+
+| Subset | Reports | Labelled `safety` (95% CI) | Flagged needs-review | Safety share among confident |
+|---|---|---|---|---|
+| Random sample | 3,000 | **0.887** (0.875-0.898) | 0.268 | 0.971 |
+| Refrigerated warehousing (NAICS 493120) | 340 | **0.829** (0.786-0.866) | 0.359 | 0.894 |
+
+- **The synthetic-text result does not transfer as cleanly as it looked.** About 11% of real injury narratives are
+  labelled something else (delay 5%, temperature 3%, damage 3%), and 17% in the cold-store subset.
+- **The score does not reliably catch those errors.** Several misses carry scores of 0.9 to 0.98; the review flag
+  (26.8% of reports) helps, but the confident reports are still only 97% safety (89% in cold storage). A `safety`
+  report mislabelled with high confidence would not be escalated by anything in this system.
+- **What goes wrong looks like vocabulary leakage from the generator:** injury reports that mention pallets,
+  forklifts, deliveries or dock doors drift to `damage` or `delay`; an electrical shock "in the box room" goes to
+  `temperature`; "heat stress" goes to `delay`. The classes in the synthetic corpus are separated by topic words
+  that real injury text also contains, which the template families did not teach the model to ignore.
+- This is a check, not a fix: nothing was retrained on OSHA text, and the numbers above were not used to tune
+  anything. Using them to train would need a held-out slice and would make this check optimistic.
+
 ## Limitations
 - **Synthetic text.** Fit to my generator, not to real reports; the independent set is also mine.
 - One main issue per report; no multi-label output, no "other/no incident" class.
 - English only; no multilingual or heavily abbreviated warehouse jargon beyond the generator's.
 - Validation is only 4 families (one per class), which makes model selection noisy.
 - Reports longer than 64 tokens are truncated.
-- Not yet connected to `core`: incident intake and storage are not built.
+- Connected to `core` (`POST /v1/incidents` classifies and stores a report) and shown in the dashboard, but
+  nothing escalates a `safety` label, and the real-text check above shows safety reports can be mislabelled.
 
 ## Reproduce
 ```bash

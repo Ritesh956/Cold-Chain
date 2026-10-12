@@ -13,7 +13,7 @@ Every dataset, whether it is real or synthetic, and its licence. Updated as data
 | Mock shipping labels | Barcode/OCR eval | Printed and photographed by me | Ours | Week 5 |
 | Incident-report corpus (`nlp/corpus.py`): 4,640 reports from 32 template families | Incident NLP training, validation, test | **SYNTHETIC** (programmatic generator, no LLM) | Ours (MIT) | Done ✅ |
 | Independent incident set (`nlp/independent.py`): 120 reports | Incident NLP distribution-shift test | **SYNTHETIC**, written by the AI assistant that built the project (not by the owner, not from a warehouse) | Ours (MIT) | Done ✅ |
-| OSHA severe injury reports | Real text for the safety class | Real | US public domain | **Not done** (the incident model has seen no real text) |
+| OSHA severe injury reports (Jan 2015 to Nov 2025, 105,993 usable narratives) | Real-text check of the incident model's `safety` class (never trained on) | Real | US public domain (OSHA); not redistributed | Done, one-sided: [results/incident_osha.md](results/incident_osha.md). Downloaded by hand from osha.gov/severe-injury-reports (`January2015toNovember2025.zip`, 16.2 MB, SHA-256 `A3F7F434...846BB0`); osha.gov refuses scripted clients (HTTP 403), so there is no download script. Kept in `data/real/osha/`, which is git-ignored. |
 
 ## Synthetic sensor data: how it is made and what it can and cannot show
 
