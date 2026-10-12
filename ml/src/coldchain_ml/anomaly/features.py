@@ -25,6 +25,16 @@ MODEL_FEATURES = [
     "cur_on_360",
     "temp_rmean_360",
 ]
+# computed for every frame but deliberately NOT in MODEL_FEATURES (that would change the trained
+# isolation forest / LightGBM); only the compressor-off rule in RobustZScore reads it
+EXTRA_FEATURES = ["off_run"]
+
+
+def _run_length(flag: np.ndarray) -> np.ndarray:
+    """Consecutive True values ending at each minute (0 where flag is False). Causal."""
+    idx = np.arange(len(flag))
+    last_false = np.maximum.accumulate(np.where(flag, -1, idx))
+    return np.where(flag, idx - last_false, 0).astype(float)
 
 
 def _zone_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -47,6 +57,8 @@ def _zone_features(df: pd.DataFrame) -> pd.DataFrame:
     out["duty_1440"] = on.rolling(1440, min_periods=360).mean()
     on_minutes = on.rolling(360, min_periods=120).sum().replace(0.0, np.nan)
     out["cur_on_360"] = (cur_on.rolling(360, min_periods=120).sum() / on_minutes).ffill()
+
+    out["off_run"] = _run_length(~df["compressor_on"].to_numpy(dtype=bool))
 
     # long-window context for the rolling z-score baseline (excludes the current minute)
     long = temp.rolling(360, min_periods=120)

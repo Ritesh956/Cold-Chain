@@ -31,7 +31,7 @@ from coldchain_ml.contract import ANOMALY_MIN_HISTORY, BREACH_MIN_HISTORY
 
 RESULTS = Path("docs/results")
 ANOMALY_MODEL, BREACH_MODEL, ALIAS = "coldchain-anomaly", "coldchain-breach", "champion"
-ANOMALY_KEY = "robust z-score (temp + compressor current)"
+ANOMALY_KEY = "robust z-score (temp + compressor current + compressor-off duration)"
 
 
 class GateFailed(RuntimeError):
@@ -53,7 +53,7 @@ def _register(run_id: str, artifact_path: str, name: str) -> str:
 def promote_anomaly() -> str:
     reported = json.loads((RESULTS / "anomaly_synthetic.json").read_text(encoding="utf-8"))[ANOMALY_KEY]
     train = load_history(TRAIN_SEED)
-    det = RobustZScore(("temp", "cur_on_360"))
+    det = RobustZScore(("temp", "cur_on_360", "off_run"))
     det.fit(train.feats)
 
     tests = [load_history(s) for s in TEST_SEEDS]

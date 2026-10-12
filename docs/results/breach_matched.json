@@ -1,0 +1,338 @@
+{
+  "current temperature (baseline)": {
+    "0.01": {
+      "threshold": -18.357165690318652,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.008333333333333333,
+      "test_false_alarms_per_zone_day": 0.004166666666666667,
+      "test_warned_5min": 0.18085106382978725,
+      "test_warned_5min_ci95": [
+        0.13240216411214387,
+        0.24208178514599413
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.358974358974359,
+        "door_left_open": 0.0,
+        "power_cut": 0.15384615384615385
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.03": {
+      "threshold": -18.357165690318652,
+      "min_run": 3,
+      "val_false_alarms_per_zone_day": 0.019444444444444445,
+      "test_false_alarms_per_zone_day": 0.024305555555555556,
+      "test_warned_5min": 0.2553191489361702,
+      "test_warned_5min_ci95": [
+        0.1983208815164517,
+        0.32211681291478744
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.5,
+        "door_left_open": 0.0,
+        "power_cut": 0.23076923076923078
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.05": {
+      "threshold": -18.532584270821477,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.041666666666666664,
+      "test_false_alarms_per_zone_day": 0.03888888888888889,
+      "test_warned_5min": 0.4148936170212766,
+      "test_warned_5min_ci95": [
+        0.3468549322595456,
+        0.4863407875426245
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.6923076923076923,
+        "door_left_open": 0.0,
+        "power_cut": 0.6153846153846154
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.1": {
+      "threshold": -18.795893033815283,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.08611111111111111,
+      "test_false_alarms_per_zone_day": 0.08402777777777778,
+      "test_warned_5min": 0.5478723404255319,
+      "test_warned_5min_ci95": [
+        0.4764776316196176,
+        0.6173497759916616
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.8589743589743589,
+        "door_left_open": 0.04225352112676056,
+        "power_cut": 0.8461538461538461
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.22": {
+      "threshold": -19.225854168412315,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.16111111111111112,
+      "test_false_alarms_per_zone_day": 0.17916666666666667,
+      "test_warned_5min": 0.6170212765957447,
+      "test_warned_5min_ci95": [
+        0.5458485539853329,
+        0.6835073312866832
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.9358974358974359,
+        "door_left_open": 0.056338028169014086,
+        "power_cut": 1.0
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    }
+  },
+  "linear extrapolation (baseline)": {
+    "0.01": {
+      "threshold": -13.032808588760613,
+      "min_run": 3,
+      "val_false_alarms_per_zone_day": 0.005555555555555556,
+      "test_false_alarms_per_zone_day": 0.009722222222222222,
+      "test_warned_5min": 0.32978723404255317,
+      "test_warned_5min_ci95": [
+        0.2665799300392324,
+        0.3998115095651078
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.0,
+        "door_left_open": 0.8732394366197183,
+        "power_cut": 0.0
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.03": {
+      "threshold": -14.158441034789742,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.013888888888888888,
+      "test_false_alarms_per_zone_day": 0.013888888888888888,
+      "test_warned_5min": 0.35106382978723405,
+      "test_warned_5min_ci95": [
+        0.2864376950493067,
+        0.42165481460449106
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.01282051282051282,
+        "door_left_open": 0.9154929577464789,
+        "power_cut": 0.0
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.05": {
+      "threshold": -15.284073480818876,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.04722222222222222,
+      "test_false_alarms_per_zone_day": 0.043055555555555555,
+      "test_warned_5min": 0.3882978723404255,
+      "test_warned_5min_ci95": [
+        0.32153208681566986,
+        0.4595372954246784
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.0641025641025641,
+        "door_left_open": 0.9295774647887324,
+        "power_cut": 0.05128205128205128
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.1": {
+      "threshold": -15.84688970383344,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.09444444444444444,
+      "test_false_alarms_per_zone_day": 0.09722222222222222,
+      "test_warned_5min": 0.44148936170212766,
+      "test_warned_5min_ci95": [
+        0.37238278681380144,
+        0.5129392705501905
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.1282051282051282,
+        "door_left_open": 0.9577464788732394,
+        "power_cut": 0.1282051282051282
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.22": {
+      "threshold": -16.409705926848005,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.2,
+      "test_false_alarms_per_zone_day": 0.2152777777777778,
+      "test_warned_5min": 0.4946808510638298,
+      "test_warned_5min_ci95": [
+        0.4240366896759248,
+        0.565538042811711
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.14102564102564102,
+        "door_left_open": 0.9577464788732394,
+        "power_cut": 0.358974358974359
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    }
+  },
+  "lightgbm (6 training histories)": {
+    "0.01": {
+      "threshold": 0.5614488545657557,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.008333333333333333,
+      "test_false_alarms_per_zone_day": 0.022222222222222223,
+      "test_warned_5min": 0.7127659574468085,
+      "test_warned_5min_ci95": [
+        0.6443348425117622,
+        0.7726758579828125
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.4230769230769231,
+        "door_left_open": 0.9154929577464789,
+        "power_cut": 0.9230769230769231
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.03": {
+      "threshold": 0.38296878285813396,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.013888888888888888,
+      "test_false_alarms_per_zone_day": 0.03194444444444444,
+      "test_warned_5min": 0.7978723404255319,
+      "test_warned_5min_ci95": [
+        0.73476705770443,
+        0.8490479229879745
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.5641025641025641,
+        "door_left_open": 0.9577464788732394,
+        "power_cut": 0.9743589743589743
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.05": {
+      "threshold": 0.38296878285813396,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.013888888888888888,
+      "test_false_alarms_per_zone_day": 0.03194444444444444,
+      "test_warned_5min": 0.7978723404255319,
+      "test_warned_5min_ci95": [
+        0.73476705770443,
+        0.8490479229879745
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.5641025641025641,
+        "door_left_open": 0.9577464788732394,
+        "power_cut": 0.9743589743589743
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.1": {
+      "threshold": 0.07700294564506822,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.07777777777777778,
+      "test_false_alarms_per_zone_day": 0.11041666666666666,
+      "test_warned_5min": 0.9521276595744681,
+      "test_warned_5min_ci95": [
+        0.9115347576827608,
+        0.9746129808682105
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.9230769230769231,
+        "door_left_open": 0.9577464788732394,
+        "power_cut": 1.0
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    },
+    "0.22": {
+      "threshold": 0.05150579254397941,
+      "min_run": 5,
+      "val_false_alarms_per_zone_day": 0.10277777777777777,
+      "test_false_alarms_per_zone_day": 0.15416666666666667,
+      "test_warned_5min": 0.9574468085106383,
+      "test_warned_5min_ci95": [
+        0.9182903007792517,
+        0.978282705284084
+      ],
+      "test_episodes": 188,
+      "test_warned_5min_by_cause": {
+        "compressor_drift": 0.9358974358974359,
+        "door_left_open": 0.9577464788732394,
+        "power_cut": 1.0
+      },
+      "test_episodes_by_cause": {
+        "compressor_drift": 78,
+        "door_left_open": 71,
+        "power_cut": 39
+      }
+    }
+  }
+}

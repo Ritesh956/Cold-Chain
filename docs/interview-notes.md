@@ -15,11 +15,14 @@ read the linked docs and can rebuild the argument yourself.
   monitor with Prometheus/Grafana, and a live Next.js dashboard (Python, FastAPI, TypeScript, Docker Compose, CI).
 - Designed freezer anomaly detection with **event-level** metrics and showed that adding compressor current to a robust
   z-score catches gradual compressor drift in about 6 hours versus about 3 days with temperature alone
-  (12x earlier) at equal event-F1 (0.92 vs 0.93) on synthetic data; an isolation forest did
+  (12x earlier), and that a label-free compressor-off-duration rule lifts power-cut recall from 0.78 to 0.97
+  (event-F1 0.95 vs 0.93 for the baseline) on synthetic data; an isolation forest did
   not beat it. Sanity-checked on a real public series (2 of 3 failures, 0 false alarms/day).
 - Trained a regularised LightGBM breach early-warning model (-18 C within 30 min): PR-AUC 0.57 vs 0.31 for a
-  current-temperature threshold, with false alarms cut from 0.22 to 0.03 per zone-day, and documented that
-  it misses most drift breaches (0.42 vs 0.96 for the threshold).
+  current-temperature threshold, with false alarms cut from 0.22 to 0.03 per zone-day, and compared the models
+  at matched false-alarm budgets, where it warns 0.96 of breaches >= 5 min ahead vs 0.62 for the threshold at
+  0.22 false alarms per zone-day (0.80 at 0.03), while documenting that at its F1-tuned point it misses most
+  drift breaches (0.42).
 - Fine-tuned DistilBERT for incident text and served it as ONNX int8 (4.0x faster, 4x smaller), while
   reporting honestly that it did **not** beat a TF-IDF baseline (macro-F1 0.733 vs 0.755), on held-out
   template families plus 120 independently written reports.
@@ -76,8 +79,8 @@ unchanged. It also flags real faults, since a fault day looks different from the
 were flagged, so a flag is not by itself a model problem. Score drift is relative to deployment, not validation.
 
 **What would you do differently, or do next?**
-Compare the breach model against the baseline at a matched false-alarm budget (the card says the operating
-points differ); test the incident model on real text (OSHA); add authentication to the dashboard and services; bring
+Test the incident model on real text (OSHA); put TLS in front of the services (the API-key auth is only as safe
+as the channel it travels on); bring
 the full Compose stack up end to end (CI builds the images and runs integration tests, but I have not run the
 whole stack in Docker locally); and finish the parts not built: forecasting/slotting, vision, the LLM assistant.
 

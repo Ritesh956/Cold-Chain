@@ -150,6 +150,44 @@
     "min_run": 5,
     "val_f1": 0.9090909090909091
   },
+  "robust z-score (temp + compressor current + compressor-off duration)": {
+    "events": 176,
+    "recall": 0.9772727272727273,
+    "recall_ci95": [
+      0.9430281041261744,
+      0.9911272859504262
+    ],
+    "precision": 0.93048128342246,
+    "precision_ci95": [
+      0.884705099830825,
+      0.9589264773515085
+    ],
+    "f1": 0.953303178951392,
+    "false_alarms_per_zone_day": 0.009027777777777777,
+    "median_delay_min": 34.0,
+    "recall_by_type": {
+      "power_cut": 0.96875,
+      "door_left_open": 0.975,
+      "compressor_drift": 1.0
+    },
+    "events_by_type": {
+      "power_cut": 64,
+      "door_left_open": 80,
+      "compressor_drift": 32
+    },
+    "median_delay_by_type_min": {
+      "power_cut": 61.5,
+      "door_left_open": 10.0,
+      "compressor_drift": 380.5
+    },
+    "false_alarms_by_cause": {
+      "defrost": 12,
+      "routine_door": 1
+    },
+    "threshold": 5.712571064419969,
+    "min_run": 5,
+    "val_f1": 0.9562800101086681
+  },
   "isolation forest": {
     "events": 176,
     "recall": 0.9261363636363636,

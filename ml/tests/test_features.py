@@ -44,3 +44,31 @@ def test_robust_z_flags_shift_and_ignores_outlier_contamination():
     shifted = f.copy()
     shifted["cur_on_360"] = 16.0
     assert np.nanmin(det.score(shifted)) > np.nanmax(det.score(healthy))
+
+
+def test_off_run_counts_consecutive_minutes_causally():
+    r = _readings(60)
+    r["compressor_on"] = True
+    r.loc[10:14, "compressor_on"] = False  # five minutes off
+    r.loc[30:31, "compressor_on"] = False
+    f = build_features(r)
+    assert f["off_run"].iloc[8:17].tolist() == [0, 0, 1, 2, 3, 4, 5, 0, 0]
+    assert f["off_run"].iloc[30:33].tolist() == [1, 2, 0]
+
+
+def test_off_rule_alarms_on_long_off_run_but_not_on_normal_cycles():
+    # 600 minutes of normal 40-minute-max cycles, then a 150-minute power cut
+    on = np.ones(1200, dtype=bool)
+    for start in range(50, 600, 60):
+        on[start : start + 35] = False
+    on[800:950] = False
+    r = _readings(1200)
+    r["compressor_on"] = on
+    f = build_features(r)
+    det = RobustZScore(("off_run",))
+    det.fit(f.iloc[:600])
+    score = det.score(f)
+    thr = 5.0  # the z-equivalent of exactly the reference limit
+    assert np.nanmax(score[:600]) < thr  # training-like cycles never alarm
+    first = int(np.argmax(score > thr))
+    assert 800 <= first < 950  # the power cut does, before it ends

@@ -40,7 +40,7 @@ def _check(readings, feats, frame, window, columns, use_frame):
 
 def test_anomaly_features_match_with_min_history(full):
     readings, feats, frame = full
-    _check(readings, feats, frame, ANOMALY_MIN_HISTORY, ["temp", "cur_on_360"], use_frame=False)
+    _check(readings, feats, frame, ANOMALY_MIN_HISTORY, ["temp", "cur_on_360", "off_run"], use_frame=False)
 
 
 def test_breach_features_match_with_min_history(full):

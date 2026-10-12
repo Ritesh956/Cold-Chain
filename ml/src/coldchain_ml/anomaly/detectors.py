@@ -37,8 +37,20 @@ class GlobalZScore:
         return (feats["temp"] - self.mu).abs().to_numpy() / self.sigma
 
 
+OFF_Z = 5.0  # z-equivalent of a compressor-off run exactly as long as the reference limit
+OFF_QUANTILE = 0.995
+OFF_MARGIN = 1.25
+
+
 class RobustZScore:
     """Max of robust z-scores (median / 1.4826*MAD) over the chosen signals.
+
+    `off_run` is the compressor-off rule: minutes the compressor has been continuously off. Normal
+    thermostat and defrost cycles end within a known time, so a run far beyond that is a power cut
+    even while the temperature is still inside its band. It is expressed as a z-equivalent
+    (OFF_Z * run / limit, median 0) so it shares the threshold and the driver formula with the other
+    signals. The limit is OFF_MARGIN x the 99.5th percentile of the run length over all training
+    minutes, so it survives training data in which power cuts are under 0.5% of minutes.
 
     Median/MAD instead of mean/std because the training history itself contains
     anomalies (e.g. days of compressor drift) that would inflate a plain std.
@@ -50,13 +62,18 @@ class RobustZScore:
     def __init__(self, signals: tuple[str, ...]) -> None:
         self.signals = signals
         self.name = "robust z-score (" + " + ".join(
-            {"temp": "temp", "cur_on_360": "compressor current"}[s] for s in signals
+            {"temp": "temp", "cur_on_360": "compressor current", "off_run": "compressor-off duration"}[s]
+            for s in signals
         ) + ")"
 
     def fit(self, feats: pd.DataFrame, labels: pd.Series | None = None) -> None:
         self.stats = {}
         for s in self.signals:
             x = feats[s].dropna()
+            if s == "off_run":
+                limit = OFF_MARGIN * float(x.quantile(OFF_QUANTILE))
+                self.stats[s] = (0.0, limit / OFF_Z)
+                continue
             med = float(x.median())
             self.stats[s] = (med, 1.4826 * float((x - med).abs().median()))
 
@@ -143,6 +160,7 @@ def all_detectors(seed: int = 0) -> list[Detector]:
         RollingZScore(),
         RobustZScore(("temp",)),
         RobustZScore(("temp", "cur_on_360")),
+        RobustZScore(("temp", "cur_on_360", "off_run")),
         IsolationForestDetector(seed),
         SupervisedLGBM(seed),
     ]

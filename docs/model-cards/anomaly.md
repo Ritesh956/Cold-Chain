@@ -21,7 +21,8 @@ features. Inputs: temperature, compressor on/off, compressor current.
 | z-score (baseline) | no | \|temp - mean\| / std from training |
 | rolling z-score (baseline) | no | vs the trailing 6 h |
 | robust z-score (temp) | no | median/MAD instead of mean/std (training data contains anomalies) |
-| **robust z-score (temp + compressor current)** | no | adds mean current while the compressor runs, over 6 h |
+| robust z-score (temp + compressor current) | no | adds mean current while the compressor runs, over 6 h |
+| **robust z-score (temp + compressor current + compressor-off duration)** | no | adds how long the compressor has been continuously off, scaled so a run longer than any normal cycle in training reads as an outlier. **The served model.** |
 | isolation forest | no | 14 causal rolling features |
 | lightgbm supervised | **yes** | same features; an upper bound, not a deployable choice |
 
@@ -36,6 +37,7 @@ change and never sees power cuts). What differs is **how early** drift is caught
 |---|---|---|
 | robust z-score (temp only) | 1.00 / 4,416 min (~3.1 days) | 0.80 |
 | robust z-score (temp + compressor current) | 1.00 / **368 min (~6 h)** | 0.78 |
+| **robust z-score (temp + compressor current + compressor-off duration)** | 1.00 / 380 min | **0.97** / 62 min |
 | lightgbm supervised | 1.00 / 326 min | **0.98** |
 
 ## What this shows, and what it does not
@@ -43,9 +45,22 @@ change and never sees power cuts). What differs is **how early** drift is caught
   temperature-only ablation is the same detector without it.
 - Isolation forest did not beat a tuned robust z-score here. On this simulator the faults are
   large, so a simple detector is enough. A more complex model is not justified by these numbers.
-- Only the supervised model catches power cuts well (0.98 vs ~0.80), because it learns that
-  "compressor off for a long time" differs from a 20-minute defrost. A label-free fix (alarm on
-  compressor-off duration) is the obvious next step.
+- Power cuts were the gap: every label-free detector caught about 80% of them, because a short cut ends
+  before the temperature leaves its band, while the supervised model caught 0.98 by learning that
+  "compressor off for a long time" differs from a 20-minute defrost.
+- **The compressor-off rule closes it without labels.** Adding the continuous compressor-off duration lifts
+  power-cut recall from 0.78 to 0.97 (median delay 62 min) and event-F1 from 0.92 to 0.95, with the same
+  0.01 false alarms per zone-day. Cost: door-left-open recall slipped from 1.00 to 0.97 (the threshold tuned
+  on validation moved from 5.4 to 5.7), and the rule's alarm cannot arrive before the run exceeds the limit
+  (about an hour), so it is late for the shortest cuts by construction.
+- **How the rule works:** the limit is 1.25x the 99.5th percentile of the off-run length over all training
+  minutes (about 55 min here; normal thermostat and 20-minute defrost cycles end before that), expressed as
+  a z-equivalent so it shares the detector's threshold and debounce. It tolerates training data in which
+  power cuts are under 0.5% of minutes.
+- **Honest provenance:** I added this rule after seeing the power-cut recall on the test histories, so the
+  idea is not test-blind. The constants (99.5th percentile, 1.25 margin, z-equivalent 5) were set from the
+  training history's off-run distribution before the run, and the threshold was tuned on validation only;
+  nothing was tuned on the test seeds. Every other row reproduces its earlier numbers exactly.
 
 ## Real-data sanity check (NAB machine temperature)
 Full table and figure: [results/anomaly_nab.md](../results/anomaly_nab.md),
@@ -89,5 +104,8 @@ detectors only).
 - Thresholds are tuned for F1 on one validation history; a site would tune for its own cost of
   a miss vs a false alarm.
 - Each zone is scored independently; no cross-zone context.
+- The compressor-off rule is calibrated to this simulator's cycles (20-minute defrosts, thermostat cycles up
+  to about 45 minutes). A site with longer defrosts would get a longer limit from its own training data, but the
+  rule has not been checked on any real compressor log.
 - Real-data evidence is 3 events from a non-freezer machine; the compressor-current finding (the main
   result) could **not** be checked on real data because no public dataset has it.

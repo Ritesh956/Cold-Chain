@@ -8,6 +8,7 @@ Event-level metrics on 4 pooled test histories (seeds 102-105, 4 zones x 90 days
 | rolling z-score (baseline) | 0.47 (0.39-0.54) | 0.91 (0.83-0.95) | 0.62 | 0.01 | 9 |
 | robust z-score (temp) | 0.92 (0.87-0.95) | 0.94 (0.90-0.96) | 0.93 | 0.01 | 38 |
 | robust z-score (temp + compressor current) | 0.92 (0.87-0.95) | 0.92 (0.87-0.95) | 0.92 | 0.01 | 32 |
+| robust z-score (temp + compressor current + compressor-off duration) | 0.98 (0.94-0.99) | 0.93 (0.88-0.96) | 0.95 | 0.01 | 34 |
 | isolation forest | 0.93 (0.88-0.96) | 0.93 (0.90-0.95) | 0.93 | 0.02 | 37 |
 | lightgbm supervised (upper bound) | 0.93 (0.88-0.96) | 0.91 (0.87-0.94) | 0.92 | 0.02 | 29 |
 
@@ -19,6 +20,7 @@ Event-level metrics on 4 pooled test histories (seeds 102-105, 4 zones x 90 days
 | rolling z-score (baseline) | 0.53 / 5281 min | 0.81 / 8 min | 0.00 / — min |
 | robust z-score (temp) | 1.00 / 4416 min | 0.99 / 8 min | 0.80 / 71 min |
 | robust z-score (temp + compressor current) | 1.00 / 368 min | 1.00 / 10 min | 0.78 / 76 min |
+| robust z-score (temp + compressor current + compressor-off duration) | 1.00 / 380 min | 0.97 / 10 min | 0.97 / 62 min |
 | isolation forest | 1.00 / 3688 min | 1.00 / 6 min | 0.80 / 78 min |
 | lightgbm supervised (upper bound) | 1.00 / 326 min | 0.85 / 8 min | 0.98 / 45 min |
 
@@ -32,5 +34,6 @@ Test events per type: {'power_cut': 64, 'door_left_open': 80, 'compressor_drift'
 | rolling z-score (baseline) | 9 | 0 | 0 |
 | robust z-score (temp) | 13 | 1 | 0 |
 | robust z-score (temp + compressor current) | 13 | 1 | 0 |
+| robust z-score (temp + compressor current + compressor-off duration) | 12 | 1 | 0 |
 | isolation forest | 19 | 4 | 8 |
 | lightgbm supervised (upper bound) | 10 | 9 | 7 |
