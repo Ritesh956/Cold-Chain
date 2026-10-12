@@ -35,6 +35,7 @@ class Metrics:
             "core_alert_events_total", "Alert opens and closes", ["kind", "action"], registry=r
         )
         self.active_alerts = Gauge("core_active_alerts", "Currently open alerts", ["kind"], registry=r)
+        self.purged = Counter("core_readings_purged_total", "Readings deleted by retention", registry=r)
         self.incidents = Counter(
             "core_incidents_total", "Incident reports handled, by label or failure", ["outcome"], registry=r
         )

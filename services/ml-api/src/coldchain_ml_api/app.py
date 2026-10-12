@@ -6,6 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import numpy as np
+from coldchain_schemas.auth import ApiKeyMiddleware, describe
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -13,7 +14,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from coldchain_ml_api.config import Settings
 from coldchain_ml_api.errors import InputError
 from coldchain_ml_api.metrics import Metrics
-from coldchain_ml_api.models import SIGNAL_LABELS
+from coldchain_ml_api.models import OFF_LABEL, SIGNAL_LABELS
 from coldchain_ml_api.schemas import (
     AnomalyPoint,
     AnomalyResponse,
@@ -50,6 +51,9 @@ def create_app(models: Models | None = None, settings: Settings | None = None) -
 
     app = FastAPI(title="ColdChain ML API", version="0.1.0", lifespan=lifespan)
     app.state.metrics = metrics
+    api_key = (settings or Settings.from_env()).api_key
+    app.add_middleware(ApiKeyMiddleware, key=api_key)  # innermost: 401s still reach `observe`
+    log.info("ml-api: %s", describe(api_key))
 
     @app.middleware("http")
     async def observe(request: Request, call_next):
@@ -139,10 +143,19 @@ def create_app(models: Models | None = None, settings: Settings | None = None) -
             known = {k: v for k, v in drivers.items() if v is not None}
             if alarm and known:
                 top = max(known, key=lambda k: abs(known[k]))
-                summary = (
-                    f"Zone {req.zone}: readings are unusual. Largest deviation is {top} "
-                    f"({abs(known[top]):.1f} robust standard deviations from normal)."
-                )
+                if top == OFF_LABEL:
+                    # the driver is a z-equivalent; scale it back to minutes with the fitted limit
+                    minutes = known[top] * model.detector.stats["off_run"][1]
+                    summary = (
+                        f"Zone {req.zone}: the compressor has been off for about {minutes:.0f} minutes, "
+                        "longer than any normal cycle seen in training "
+                        "(possible power cut or compressor stop)."
+                    )
+                else:
+                    summary = (
+                        f"Zone {req.zone}: readings are unusual. Largest deviation is {top} "
+                        f"({abs(known[top]):.1f} robust standard deviations from normal)."
+                    )
             points.append(
                 AnomalyPoint(
                     ts=res.ts[i].to_pydatetime(), score=score, alarm=alarm, drivers=drivers, summary=summary

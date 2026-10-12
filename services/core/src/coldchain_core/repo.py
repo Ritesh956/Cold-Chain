@@ -28,6 +28,9 @@ class Repo(Protocol):
         """Readings with end-(minutes-1) <= ts <= end, ascending, plus at most one reading just
         before that range (so gap filling can carry the compressor state forward)."""
 
+    async def purge_readings_before(self, cutoff: datetime) -> int:
+        """Delete readings with ts < cutoff. Returns rows removed."""
+
     async def get_scoring_state(self, zone: str, model: str) -> datetime | None: ...
     async def set_scoring_state(self, zone: str, model: str, ts: datetime) -> None: ...
 
@@ -37,6 +40,9 @@ class Repo(Protocol):
     async def open_alerts(self) -> list[Alert]: ...
     async def list_alerts(self, active_only: bool, zone: str | None, limit: int) -> list[Alert]:
         """Newest first by opened_at."""
+
+    async def acknowledge_alert(self, alert_id: int, ts: datetime) -> Alert | None:
+        """Mark an alert as seen. Idempotent: the first acknowledgement time is kept. None if unknown."""
 
     async def save_incident(self, incident: Incident) -> Incident:
         """Insert; returns the stored incident with its id."""
@@ -74,6 +80,15 @@ class MemoryRepo:
                 new += 1
         return new
 
+    async def purge_readings_before(self, cutoff: datetime) -> int:
+        removed = 0
+        for rows in self._readings.values():
+            old = [ts for ts in rows if ts < cutoff]
+            for ts in old:
+                del rows[ts]
+            removed += len(old)
+        return removed
+
     async def zones(self) -> list[str]:
         return sorted(self._readings)
 
@@ -98,7 +113,20 @@ class MemoryRepo:
         if alert.id is None:
             alert = alert.model_copy(update={"id": self._next_id})
             self._next_id += 1
+        previous = self._alerts.get(alert.id)
+        if previous is not None and previous.acknowledged_at is not None:
+            # the alert engine holds its own copy, which cannot know about an acknowledgement
+            alert = alert.model_copy(update={"acknowledged_at": previous.acknowledged_at})
         self._alerts[alert.id] = alert
+        return alert
+
+    async def acknowledge_alert(self, alert_id: int, ts: datetime) -> Alert | None:
+        alert = self._alerts.get(alert_id)
+        if alert is None:
+            return None
+        if alert.acknowledged_at is None:
+            alert = alert.model_copy(update={"acknowledged_at": ts})
+            self._alerts[alert_id] = alert
         return alert
 
     async def open_alerts(self) -> list[Alert]:

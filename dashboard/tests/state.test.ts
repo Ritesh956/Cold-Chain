@@ -74,6 +74,15 @@ describe("alerts", () => {
     expect(alerts[0].id).toBe(119);
   });
 
+  it("keeps an alert open when an acknowledgement arrives", () => {
+    const base = applyEvents(empty, [{ type: "alert", action: "opened", alert: alert() }]);
+    const acked = alert({ acknowledged_at: new Date(T0 + 60_000).toISOString() });
+    const s = applyEvents(base, [{ type: "alert", action: "acknowledged", alert: acked }]);
+    expect(s.alerts).toHaveLength(1);
+    expect(s.alerts[0].acknowledged_at).not.toBeNull();
+    expect(s.alerts[0].closed_at).toBeNull();
+  });
+
   it("flows through applyEvents", () => {
     const s = applyEvents(empty, [{ type: "alert", action: "opened", alert: alert() }]);
     expect(s.alerts).toHaveLength(1);

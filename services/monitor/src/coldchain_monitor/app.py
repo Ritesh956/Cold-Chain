@@ -5,6 +5,7 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+from coldchain_schemas.auth import ApiKeyMiddleware, describe
 from fastapi import FastAPI, Request, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
@@ -22,7 +23,12 @@ def create_app(
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     metrics = Metrics()
-    src = source or HttpSource(settings.core_url, settings.ml_api_url)
+    src = source or HttpSource(
+        settings.core_url,
+        settings.ml_api_url,
+        core_key=settings.core_api_key,
+        ml_key=settings.ml_api_key,
+    )
     monitor = DriftMonitor(src, reference.load(), settings, metrics)
 
     async def loop() -> None:
@@ -48,6 +54,8 @@ def create_app(
 
     app = FastAPI(title="ColdChain Drift Monitor", version="0.1.0", lifespan=lifespan)
     app.state.monitor = monitor
+    app.add_middleware(ApiKeyMiddleware, key=settings.api_key)
+    log.info("monitor: %s", describe(settings.api_key))
 
     @app.get("/healthz", tags=["ops"])
     def healthz() -> dict:

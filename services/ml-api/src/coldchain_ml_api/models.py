@@ -15,7 +15,8 @@ from coldchain_ml.anomaly.events_eval import apply_min_run
 from coldchain_ml.anomaly.features import build_features
 from coldchain_ml.breach.data import BREACH_C, RECENT_MIN, build_breach_frame
 
-SIGNAL_LABELS = {"temp": "temperature", "cur_on_360": "compressor current"}
+OFF_LABEL = "compressor-off duration"
+SIGNAL_LABELS = {"temp": "temperature", "cur_on_360": "compressor current", "off_run": OFF_LABEL}
 
 
 @dataclass(frozen=True)

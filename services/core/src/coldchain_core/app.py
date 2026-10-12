@@ -11,12 +11,13 @@ from datetime import UTC, datetime
 from typing import Any
 
 from coldchain_schemas import Alert, Incident, SensorReading
+from coldchain_schemas.auth import ApiKeyMiddleware, describe
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field
 
-from coldchain_core.alerts import AlertEngine
+from coldchain_core.alerts import AlertEngine, AlertEvent
 from coldchain_core.cache import LatestCache
 from coldchain_core.config import Settings
 from coldchain_core.events import AlertPublisher, Broadcaster
@@ -24,6 +25,7 @@ from coldchain_core.ingest import IngestWorker, Source
 from coldchain_core.metrics import Metrics
 from coldchain_core.mlclient import MlApi, MlApiError
 from coldchain_core.repo import Repo
+from coldchain_core.retention import purge_once
 from coldchain_core.scoring import MODELS, Scorer
 
 log = logging.getLogger("coldchain_core")
@@ -65,7 +67,12 @@ async def build_default_deps(settings: Settings, broadcaster: Broadcaster) -> De
     )
 
     from coldchain_core.cache import RedisCache
-    from coldchain_core.events import BroadcastAlertPublisher, CompositePublisher, NatsAlertPublisher
+    from coldchain_core.events import (
+        BroadcastAlertPublisher,
+        CompositePublisher,
+        NatsAlertPublisher,
+        WebhookAlertPublisher,
+    )
     from coldchain_core.ingest import NatsSource
     from coldchain_core.mlclient import HttpMlApi
     from coldchain_core.pg import PgRepo
@@ -77,10 +84,21 @@ async def build_default_deps(settings: Settings, broadcaster: Broadcaster) -> De
     js = nc.jetstream()
     await js.add_stream(name=SENSOR_STREAM, subjects=SENSOR_SUBJECTS, max_age=SENSOR_MAX_AGE_S)
     await js.add_stream(name=ALERT_STREAM, subjects=ALERT_SUBJECTS, max_age=ALERT_MAX_AGE_S)
-    ml = HttpMlApi(settings.ml_api_url)
+    ml = HttpMlApi(settings.ml_api_url, api_key=settings.ml_api_key)
+    sinks: list[Any] = [BroadcastAlertPublisher(broadcaster), NatsAlertPublisher(js)]
+    closers: list[Callable[[], Awaitable[None]]] = [repo.close, cache.close, ml.close, nc.drain]
+    if settings.alert_webhook_url:
+        webhook = WebhookAlertPublisher(
+            settings.alert_webhook_url,
+            secret=settings.alert_webhook_secret,
+            actions=frozenset(a.strip() for a in settings.alert_webhook_actions.split(",") if a.strip()),
+        )
+        await webhook.start()
+        sinks.append(webhook)
+        closers.insert(0, webhook.aclose)
+        log.info("alert webhook enabled (actions: %s)", settings.alert_webhook_actions)
     publisher = CompositePublisher(
-        BroadcastAlertPublisher(broadcaster),
-        NatsAlertPublisher(js),
+        *sinks,
         on_error=lambda sink, e: log.warning("alert sink %s failed: %r", type(sink).__name__, e),
     )
     return Deps(
@@ -91,7 +109,7 @@ async def build_default_deps(settings: Settings, broadcaster: Broadcaster) -> De
         broadcaster=broadcaster,
         source=NatsSource(js),
         nats_ok=lambda: nc.is_connected,
-        closers=[repo.close, cache.close, ml.close, nc.drain],
+        closers=closers,
     )
 
 
@@ -129,6 +147,18 @@ def create_app(
                     await asyncio.sleep(settings.score_tick_s)
 
             tasks.append(asyncio.create_task(_supervise("scorer", score_loop)))
+
+            if settings.retention_days:
+
+                async def retention_loop() -> None:
+                    while True:
+                        removed = await purge_once(d.repo, settings.retention_days)
+                        if removed:
+                            metrics.purged.inc(removed)
+                            log.info("retention: removed %d readings", removed)
+                        await asyncio.sleep(settings.retention_every_s)
+
+                tasks.append(asyncio.create_task(_supervise("retention", retention_loop)))
             if d.source is not None:
                 worker = IngestWorker(
                     d.source,
@@ -154,6 +184,8 @@ def create_app(
 
     app = FastAPI(title="ColdChain Core", version="0.1.0", lifespan=lifespan)
     app.state.metrics = metrics
+    app.add_middleware(ApiKeyMiddleware, key=settings.api_key)  # innermost: 401s still reach `observe`
+    log.info("core: %s", describe(settings.api_key))
 
     @app.middleware("http")
     async def observe(request: Request, call_next):
@@ -219,6 +251,17 @@ def create_app(
             "minutes": minutes,
             "readings": [r.model_dump(mode="json") for r in rows],
         }
+
+    @app.post("/v1/alerts/{alert_id}/ack", response_model=Alert, tags=["data"])
+    async def acknowledge(alert_id: int, request: Request) -> Alert:
+        """Mark an alert as seen. It stays open until the model stops alarming; this only records that
+        someone has looked. Idempotent: acknowledging again keeps the first time."""
+        d: Deps = request.app.state.deps
+        alert = await d.repo.acknowledge_alert(alert_id, datetime.now(UTC))
+        if alert is None:
+            raise HTTPException(404, f"unknown alert {alert_id}")
+        await d.publisher.publish(AlertEvent("acknowledged", alert))
+        return alert
 
     @app.get("/v1/alerts", response_model=list[Alert], tags=["data"])
     async def alerts(

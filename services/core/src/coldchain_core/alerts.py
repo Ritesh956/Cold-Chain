@@ -21,7 +21,7 @@ SEVERITY = {
 
 @dataclass(frozen=True)
 class AlertEvent:
-    action: Literal["opened", "closed"]
+    action: Literal["opened", "closed", "acknowledged"]
     alert: Alert
 
 

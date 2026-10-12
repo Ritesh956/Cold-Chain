@@ -6,7 +6,7 @@ import { applyEvents, empty, seed, type State } from "./state";
 import type { DriftReport, StreamEvent } from "./types";
 
 const FLUSH_MS = 500; // the simulator can replay at 60x: batch events instead of rendering each one
-const HISTORY_MIN = 360;
+const HISTORY_MIN = 1440; // the longest range the dashboard offers
 
 type Action = { t: "events"; events: StreamEvent[] } | { t: "seed"; history: Parameters<typeof seed>[1]; alerts: Parameters<typeof seed>[2]; incidents: Parameters<typeof seed>[3] };
 

@@ -64,7 +64,10 @@ says how it behaves on real freezer data.
   at deployment, it cannot tell.
 - No labels, so it measures **input and output shift, not accuracy**. Concept drift that leaves both
   unchanged (for example, a changed definition of a breach) is invisible to it.
-- No alert routing: drift is visible in Grafana and `/v1/drift`; it does not page anyone.
+- No alert routing: drift is visible in Grafana and `/v1/drift`; it does not page anyone. (Alerts from `core` can
+  go to a webhook; drift flags cannot.)
+- `API_KEY` protects `/v1/*` (`CORE_API_KEY` and `ML_API_KEY` are what it sends to the services); `/metrics`
+  stays open for Prometheus.
 - **Not verified:** the Compose `observability` profile (monitor, Prometheus, Grafana) has been validated
   with `docker compose config` only. Docker was not running on the development machine, so the images
   were not built or run and the Grafana dashboard was never rendered.

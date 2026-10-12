@@ -1,6 +1,11 @@
 import type { Alert, Incident, Reading, StreamEvent } from "./types";
 
-export const MAX_POINTS = 720; // readings kept per zone (12 h at 1/min)
+export const MAX_POINTS = 1440; // readings kept per zone (24 h at 1/min)
+export const RANGES = [
+  { label: "1 h", minutes: 60 },
+  { label: "6 h", minutes: 360 },
+  { label: "24 h", minutes: 1440 },
+] as const;
 export const MAX_ALERTS = 100;
 export const MAX_INCIDENTS = 50;
 

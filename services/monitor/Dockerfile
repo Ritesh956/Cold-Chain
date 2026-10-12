@@ -23,6 +23,7 @@ RUN mkdir -p libs/coldchain_schemas/src/coldchain_schemas services/simulator/src
     services/monitor/src/coldchain_monitor/__init__.py ml/src/coldchain_ml/__init__.py \
  && uv sync --frozen --no-dev --package coldchain-monitor --no-editable
 
+COPY libs libs
 COPY services/monitor/src services/monitor/src
 RUN uv sync --frozen --no-dev --package coldchain-monitor --no-editable
 

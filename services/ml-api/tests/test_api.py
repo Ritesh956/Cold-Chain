@@ -163,3 +163,33 @@ def test_service_fails_fast_when_models_cannot_load(tmp_path):
     bad = Settings(mlflow_tracking_uri=f"file:{tmp_path}", anomaly_model_uri="models:/nope@champion")
     with pytest.raises(Exception), TestClient(create_app(settings=bad)):  # noqa: B017
         pass
+
+
+def test_v1_needs_the_api_key_when_one_is_configured(models, sim):
+    payload = sim.payload(2000)
+    with TestClient(create_app(models=models, settings=Settings(api_key="k"))) as c:
+        assert c.get("/healthz").status_code == 200 and c.get("/readyz").status_code == 200
+        assert c.get("/metrics").status_code == 200
+        assert c.get("/v1/models").status_code == 401
+        assert c.post("/v1/anomaly/score", json=payload).status_code == 401
+        assert c.get("/v1/models", headers={"X-API-Key": "k"}).status_code == 200
+        bearer = {"Authorization": "Bearer k"}
+        assert c.post("/v1/anomaly/score", json=payload, headers=bearer).status_code == 200
+
+
+def test_power_cut_is_described_in_minutes_when_the_off_rule_is_served(models, sim):
+    from coldchain_ml_api.models import AnomalyModel
+    from coldchain_ml_api.store import Models
+    from mlapi_helpers import anomaly_config
+
+    cfg = anomaly_config(sim, threshold=5.7, signals=("temp", "cur_on_360", "off_run"))
+    served = Models(AnomalyModel(cfg, "test-off"), models.breach)
+    cut = sim.event("power_cut")
+    end = sim.index_at(cut["start"]) + 100  # 100 minutes into the cut: compressor off the whole time
+    with TestClient(create_app(models=served)) as c:
+        p = c.post("/v1/anomaly/score", json=sim.payload(end, n=400)).json()["points"][0]
+    assert p["alarm"] is True
+    assert "compressor-off duration" in p["drivers"]
+    assert "compressor has been off for about" in p["summary"]
+    minutes = int(p["summary"].split("about ")[1].split(" minutes")[0])
+    assert 95 <= minutes <= 101  # the scaled-back figure is the actual run length

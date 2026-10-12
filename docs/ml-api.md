@@ -46,7 +46,9 @@ Bad windows get HTTP 422 with `{"error": {"code": ..., "message": ...}}`
 This is **not** an alarm yet. That is the documented behaviour, not a bug: power cuts are the
 anomaly detector's weak spot (median detection delay about 76 minutes; see the model card). Once
 the score crosses the threshold for 5 consecutive minutes, `alarm` is `true` and `summary` is a
-plain-English sentence for the dashboard. `drivers` give the signed robust z-score per signal.
+plain-English sentence for the dashboard. `drivers` give the signed robust z-score per signal (temperature, compressor current and the
+compressor-off duration, which is a z-equivalent of how long the compressor has been off; the summary then
+states the off time in minutes).
 
 `/v1/breach/predict` returns `state` (`normal`, `recovering`, `breached`, `no_reading`),
 `at_risk`, `risk_score`, `alarm`. `risk_score` is a model output in 0..1, **not a calibrated
@@ -163,7 +165,9 @@ on the development machine), i.e. the container loading models from the Compose 
 
 ## Limitations
 
-- No authentication or rate limiting: it is an internal service. Add both before any exposure.
+- Authentication is one shared key: set `API_KEY` and `/v1/*` requires it (`X-API-Key` or `Authorization: Bearer`);
+  `/healthz`, `/readyz` and `/metrics` stay open. No users, rotation or rate limiting, and the key is only as safe
+  as the channel (use TLS beyond localhost).
 - The caller must provide at least 1500 minutes of history for breach scoring (about 185 KB per
   request). A stateful variant (service keeps a rolling buffer fed from NATS) would cut that;
   it is a trade-off for later, not a missing feature.

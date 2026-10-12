@@ -95,6 +95,7 @@ services:
     depends_on:
       mlflow: {condition: service_started}
     environment:
+      API_KEY: ${API_KEY:-}   # empty = no auth (development); set one value for every service
       MLFLOW_TRACKING_URI: http://mlflow:5000
       # models:/<name>@<alias>; move the alias in the MLflow registry to roll out or roll back
       ANOMALY_MODEL_URI: models:/coldchain-anomaly@champion
@@ -117,6 +118,11 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379/0
       ML_API_URL: http://ml-api:8080
+      API_KEY: ${API_KEY:-}
+      ML_API_KEY: ${API_KEY:-}
+      RETENTION_DAYS: ${RETENTION_DAYS:-0}   # 0 keeps every reading; otherwise at least 3
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}   # optional: POST alert events here
+      ALERT_WEBHOOK_SECRET: ${ALERT_WEBHOOK_SECRET:-}
       SCORE_EVERY_MIN: "5"   # event minutes between scoring calls (the simulator replays at 60x)
     restart: on-failure
     ports: ["8000:8080"]
@@ -124,11 +130,14 @@ services:
   dashboard:
     build:
       context: ./dashboard
-      args:
-        CORE_URL: http://core:8080
-        MONITOR_URL: http://monitor:8080
     profiles: [app]
     depends_on: [core]
+    environment:
+      CORE_URL: http://core:8080
+      MONITOR_URL: http://monitor:8080
+      CORE_API_KEY: ${API_KEY:-}
+      MONITOR_API_KEY: ${API_KEY:-}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD:-}   # empty = dashboard open
     ports: ["3000:3000"]
 
   simulator:
@@ -150,6 +159,9 @@ services:
     environment:
       CORE_URL: http://core:8080
       ML_API_URL: http://ml-api:8080
+      API_KEY: ${API_KEY:-}
+      CORE_API_KEY: ${API_KEY:-}
+      ML_API_KEY: ${API_KEY:-}
     restart: on-failure
     ports: ["8090:8080"]
 

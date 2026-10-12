@@ -22,6 +22,7 @@ simulator ──► NATS JetStream (SENSORS) ──► ingest worker ──► P
 | GET | `/v1/zones` | Every zone: latest reading, open alerts, how far each model has scored |
 | GET | `/v1/zones/{zone}/readings?minutes=360` | Recent history (1 to 10,080 minutes) |
 | GET | `/v1/alerts?status=active\|all&zone=&limit=` | Alert episodes, newest first |
+| POST | `/v1/alerts/{id}/ack` | Mark an alert as seen (idempotent; the first time is kept). It does **not** close the alert; that still follows the model. Pushes an `acknowledged` alert event |
 | POST | `/v1/incidents` | Body `{text, zone?}`: classify a free-text incident report with the ml-api, store it, push it to live clients. 503 if the classifier is down (nothing stored), 422 for invalid text |
 | GET | `/v1/incidents?label=&needs_review=&limit=` | Stored incident reports, newest first |
 | GET | `/v1/stream` | Server-Sent Events: `reading`, `alert` and `incident` events, with keep-alives |
@@ -98,8 +99,18 @@ development machine); CI builds the images and runs the integration job on servi
 
 ## Limitations
 
-- **No authentication or rate limiting.** Internal service; add both before any exposure.
-- **No backfill on first start:** a zone first seen mid-stream is scored from its newest minute.
+- **Authentication is one shared key, not user accounts.** Set `API_KEY` and `/v1/*` requires it (`X-API-Key` or
+  `Authorization: Bearer`, compared in constant time); health, readiness and metrics stay open. Unset means no
+  auth (development), and the service logs that at startup. There are no users, roles, rotation or rate limiting,
+  and without TLS in front the key is visible on the wire. Core sends `ML_API_KEY` to the ml-api.
+- **Alert webhook is at-most-once.** `ALERT_WEBHOOK_URL` (with optional `ALERT_WEBHOOK_SECRET`, an HMAC-SHA256
+  of the body in `X-ColdChain-Signature`, and `ALERT_WEBHOOK_ACTIONS`, default `opened,closed`) receives alert
+  events as JSON with a ready-to-show `text`. Delivery is queued and retried up to 3 times on transport errors
+  and 5xx/429, so a dead endpoint never stalls scoring, but events queued when the process stops are lost and
+  failures are logged, not exported as metrics. Verified against a local receiver, including the signature;
+  not against a real chat service.
+- **No backfill on first start, by choice:** a zone first seen mid-stream is scored from its newest minute, so a
+  restart against an old database cannot replay history into a burst of alerts.
 - **After an outage longer than about 5% of a model's window** (75 minutes for breach), that model
   cannot score until the gap leaves its window (up to about 25 hours for breach), and says so in
   `core_scoring_total{outcome="skipped_insufficient_data"}`.
@@ -107,7 +118,12 @@ development machine); CI builds the images and runs the integration job on servi
   later peak updates.
 - **Single scorer and single ingest consumer.** Fine for this scale; multiple replicas would need
   leader election or sharding by zone.
-- No data retention policy yet (Timescale retention would be the natural fit).
+- **Retention is opt-in and covers readings only.** `RETENTION_DAYS` (0 keeps everything; otherwise at least 3,
+  because the breach model reads 25 hours and the drift monitor 24) deletes readings older than that **before the
+  newest stored reading** (event time, so replaying an old history never purges what just arrived), checked
+  hourly. Alerts and incident reports are kept. It uses a plain `DELETE`, which works on a TimescaleDB
+  hypertable and plain Postgres; `drop_chunks` would be cheaper at scale. Covered by tests on the in-memory and
+  Postgres stores (Postgres in CI only).
 - **Incident reports are classified and stored, but never raise an alert.** A `safety` label is shown in the
   dashboard, not escalated. The classifier was trained on synthetic text and saw no real reports; the score
   is a ranking signal, not a probability, and `needs_review` marks low-scoring reports. The Postgres side of

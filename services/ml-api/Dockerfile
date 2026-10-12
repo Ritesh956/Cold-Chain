@@ -18,6 +18,7 @@ RUN mkdir -p libs/coldchain_schemas/src/coldchain_schemas services/simulator/src
  && uv sync --frozen --no-dev --package coldchain-ml-api --no-editable
 
 # real sources (only what the service needs; the simulator and training extras are not installed)
+COPY libs libs
 COPY ml/src ml/src
 COPY services/ml-api/src services/ml-api/src
 RUN uv sync --frozen --no-dev --package coldchain-ml-api --no-editable

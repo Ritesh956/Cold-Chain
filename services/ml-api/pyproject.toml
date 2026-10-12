@@ -5,6 +5,7 @@ description = "Model-serving API for ColdChain AI (anomaly detection, breach ear
 requires-python = ">=3.12"
 dependencies = [
     "coldchain-ml",
+    "coldchain-schemas",
     "fastapi>=0.115,<1",
     "uvicorn>=0.32,<1",
     "prometheus-client>=0.21,<1",

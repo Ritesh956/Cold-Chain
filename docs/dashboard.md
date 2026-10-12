@@ -8,15 +8,18 @@ browser ──► Next.js server ──/api/core/*────► core     (REST
                           └─/api/monitor/*──► monitor  (/v1/drift, polled every 30 s)
 ```
 
-The browser only talks to the Next.js server, which proxies to the services, so neither needs CORS.
-The proxy targets (`CORE_URL`, `MONITOR_URL`) are fixed **at build time**.
+The browser only talks to the Next.js server, which proxies to the services (in `middleware.ts`), so neither needs
+CORS. The proxy targets and keys are read **at runtime**: `CORE_URL`, `MONITOR_URL`, `CORE_API_KEY`,
+`MONITOR_API_KEY`. The service keys are added on the server, so they never reach the browser. Set
+`DASHBOARD_PASSWORD` to put the whole dashboard behind HTTP Basic auth (any user name).
 
 ## What it shows
 
 - **Zone cards:** latest temperature and compressor state, a temperature chart with the -18 C limit and
   shaded spans for alert episodes, and the open alerts with the model's plain-English summary.
   Health is written out as well as coloured (Normal / Warning / Critical / No data).
-- **Alerts:** newest first, with open/closed state.
+- **Alerts:** newest first, with open/closed state and an **Acknowledge** button (records that someone has seen
+  an alert; it stays active until the model stops alarming).
 - **Incident reports:** a form that sends free text (and an optional zone) to `core`, which classifies it with the
   ml-api model and stores it; rows arrive over the live stream, with the label, the score (a ranking signal, not
   a probability) and a "needs review" flag for low scores.
@@ -31,7 +34,7 @@ The proxy targets (`CORE_URL`, `MONITOR_URL`) are fixed **at build time**.
   dropped because only strictly newer readings extend a series.
 - **Events are batched** (500 ms) before rendering. At the simulator's 60x replay four zones produce
   about 240 events per second; rendering each one would saturate the page.
-- **State logic is a pure module** (`lib/state.ts`) with unit tests (20, vitest): dedupe, ordering,
+- **State logic is a pure module** (`lib/state.ts`) with unit tests (21, vitest): dedupe, ordering,
   capping, alert upsert, history/live merge, health, downsampling.
 - **Sensor dropouts stay as gaps** in the line, not zeros.
 
@@ -61,9 +64,13 @@ With Compose: the `app` profile includes the dashboard on http://localhost:3000.
 
 ## Limitations
 
-- No authentication. The proxy exposes core and monitor to whoever can reach the dashboard.
-- Shows about 12 h of history per zone (720 readings); no date picker, no zoom.
-- Read-only: it cannot acknowledge or close alerts.
+- One shared password and shared service keys, no user accounts, and Basic auth over plain HTTP exposes the
+  password: put TLS in front of anything beyond localhost. The password check and key forwarding were verified
+  with HTTP requests against real processes; the browser's password prompt itself was not exercised (the in-app
+  browser cannot answer it).
+- Keeps 24 h of history per zone (1,440 readings) with a 1 h / 6 h / 24 h chart range; no date picker, no zoom,
+  nothing older than a day.
+- It can acknowledge alerts but not close them or assign them.
 - `npm audit` reports advisories in the PostCSS bundled inside Next 15, which only processes this repo's
   own CSS at build time. Not exploitable here, but it is unresolved until Next 16.
 - The incident panel submits and lists reports, but a `safety` report does not alert anyone. The assistant is

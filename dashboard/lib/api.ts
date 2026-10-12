@@ -17,6 +17,12 @@ export const fetchReadings = async (zone: string, minutes: number): Promise<Read
 
 export const fetchAlerts = () => getJson<Alert[]>(`${CORE}/v1/alerts?status=all&limit=100`);
 
+export async function acknowledgeAlert(id: number): Promise<Alert> {
+  const r = await fetch(`${CORE}/v1/alerts/${id}/ack`, { method: "POST" });
+  if (!r.ok) throw new Error(r.status === 404 ? "alert not found" : `request failed (${r.status})`);
+  return (await r.json()) as Alert;
+}
+
 export const fetchIncidents = () => getJson<Incident[]>(`${CORE}/v1/incidents?limit=50`);
 
 export async function submitIncident(text: string, zone: string | null): Promise<Incident> {

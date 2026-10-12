@@ -46,12 +46,14 @@ class Sim:
         return self.events[self.events["type"] == kind].sort_values("start").iloc[i]
 
 
-def anomaly_config(sim: Sim, threshold: float = 4.0) -> dict:
-    det = RobustZScore(("temp", "cur_on_360"))
+def anomaly_config(
+    sim: Sim, threshold: float = 4.0, signals: tuple[str, ...] = ("temp", "cur_on_360")
+) -> dict:
+    det = RobustZScore(signals)
     det.fit(sim.feats)
     return {
         "type": "robust_z_score",
-        "signals": ["temp", "cur_on_360"],
+        "signals": list(signals),
         "stats": {k: list(v) for k, v in det.stats.items()},
         "threshold": threshold,
         "min_run": 5,

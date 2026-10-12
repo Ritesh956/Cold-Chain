@@ -156,3 +156,33 @@ async def test_incident_filters_and_limit(repo):
     assert [i.text for i in await repo.list_incidents(None, True, 10)] == ["report 2"]
     assert [i.text for i in await repo.list_incidents("safety", False, 10)] == ["report 3"]
     assert len(await repo.list_incidents(None, None, 2)) == 2
+
+
+async def test_acknowledge_is_idempotent_keeps_the_first_time_and_survives_the_engines_update(repo):
+    opened = await repo.save_alert(
+        Alert(zone="A", kind=AlertKind.ANOMALY, severity="warning", opened_at=T0, peak_score=3.0)
+    )
+    assert await repo.acknowledge_alert(opened.id + 999, T0 + MIN) is None  # unknown id
+    first = await repo.acknowledge_alert(opened.id, T0 + 2 * MIN)
+    assert first.acknowledged_at == T0 + 2 * MIN and first.closed_at is None  # seen, not closed
+    again = await repo.acknowledge_alert(opened.id, T0 + 9 * MIN)
+    assert again.acknowledged_at == T0 + 2 * MIN  # the first acknowledgement time is kept
+
+    # the alert engine closes its own copy, which knows nothing about the acknowledgement
+    closed = await repo.save_alert(opened.model_copy(update={"closed_at": T0 + 20 * MIN, "peak_score": 5.0}))
+    assert closed.acknowledged_at == T0 + 2 * MIN and closed.closed_at == T0 + 20 * MIN
+    (listed,) = await repo.list_alerts(False, None, 10)
+    assert listed.acknowledged_at == T0 + 2 * MIN and listed.peak_score == 5.0
+
+
+async def test_purge_removes_only_older_readings_and_keeps_alerts_and_incidents(repo):
+    await repo.upsert_readings([*history("A", 10), *history("B", 10)])
+    await repo.save_alert(Alert(zone="A", kind=AlertKind.ANOMALY, severity="warning", opened_at=T0))
+    await repo.save_incident(_incident(1))
+    assert await repo.purge_readings_before(T0 + 4 * MIN) == 8  # minutes 0..3 in both zones
+    window = await repo.window("A", T0 + 9 * MIN, 100)
+    assert window[0].ts == T0 + 4 * MIN and len(window) == 6
+    assert await repo.purge_readings_before(T0 + 4 * MIN) == 0  # nothing left below the cut-off
+    assert len(await repo.list_alerts(False, None, 10)) == 1
+    assert len(await repo.list_incidents(None, None, 10)) == 1
+    assert (await repo.latest("A")).ts == T0 + 9 * MIN

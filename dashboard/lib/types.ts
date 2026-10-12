@@ -17,6 +17,7 @@ export type Alert = {
   severity: string;
   opened_at: string;
   closed_at: string | null;
+  acknowledged_at?: string | null; // seen by an operator; does not close the alert
   peak_score: number | null;
   summary: string | null;
   model_version: string | null;

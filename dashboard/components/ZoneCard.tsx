@@ -4,7 +4,15 @@ import { TempChart } from "./TempChart";
 
 const LABEL = { ok: "Normal", warning: "Warning", critical: "Critical", "no-data": "No data" } as const;
 
-export function ZoneCard({ zone, alerts }: { zone: ZoneState; alerts: Alert[] }) {
+export function ZoneCard({
+  zone,
+  alerts,
+  windowMin,
+}: {
+  zone: ZoneState;
+  alerts: Alert[];
+  windowMin: number;
+}) {
   const mine = alerts.filter((a) => a.zone === zone.zone);
   const open = mine.filter((a) => a.closed_at === null);
   const health = zoneHealth(zone, alerts);
@@ -26,7 +34,7 @@ export function ZoneCard({ zone, alerts }: { zone: ZoneState; alerts: Alert[] })
           <div className="muted">compressor{r ? `, ${r.compressor_current_a.toFixed(1)} A` : ""}</div>
         </div>
       </div>
-      <TempChart series={zone.series} alerts={mine} />
+      <TempChart series={zone.series.slice(-windowMin)} alerts={mine} />
       {open.length > 0 && (
         <ul className="open-alerts">
           {open.map((a, i) => (

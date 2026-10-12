@@ -24,8 +24,9 @@ class MlApi(Protocol):
 
 
 class HttpMlApi:
-    def __init__(self, base_url: str, timeout_s: float = 15.0) -> None:
-        self._c = httpx.AsyncClient(base_url=base_url, timeout=timeout_s)
+    def __init__(self, base_url: str, timeout_s: float = 15.0, api_key: str = "") -> None:
+        headers = {"X-API-Key": api_key} if api_key else {}
+        self._c = httpx.AsyncClient(base_url=base_url, timeout=timeout_s, headers=headers)
 
     async def _call(self, method: str, path: str, **kw: Any) -> dict[str, Any]:
         try:

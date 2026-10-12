@@ -35,10 +35,12 @@ CREATE TABLE IF NOT EXISTS alerts (
     severity text NOT NULL,
     opened_at timestamptz NOT NULL,
     closed_at timestamptz,
+    acknowledged_at timestamptz,
     peak_score double precision,
     summary text,
     model_version text
 );
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS acknowledged_at timestamptz;  -- databases created before acks
 CREATE INDEX IF NOT EXISTS alerts_open_idx ON alerts (zone, kind) WHERE closed_at IS NULL;
 CREATE INDEX IF NOT EXISTS alerts_opened_idx ON alerts (opened_at DESC);
 
@@ -64,7 +66,9 @@ CREATE TABLE IF NOT EXISTS scoring_state (
 
 _READING_COLS = "zone, ts, temp_c, compressor_on, compressor_current_a"
 _INCIDENT_COLS = "id, received_at, zone, text, label, confidence, needs_review, model_version"
-_ALERT_COLS = "id, zone, kind, severity, opened_at, closed_at, peak_score, summary, model_version"
+_ALERT_COLS = (
+    "id, zone, kind, severity, opened_at, closed_at, acknowledged_at, peak_score, summary, model_version"
+)
 
 
 def _alert(row: dict) -> Alert:
@@ -114,6 +118,11 @@ class PgRepo:
                 [(z,) for z in {r.zone for r in rows}],
             )
         return max(inserted, 0)
+
+    async def purge_readings_before(self, cutoff: datetime) -> int:
+        async with self._pool.connection() as conn:
+            cur = await conn.execute("DELETE FROM readings WHERE ts < %s", (cutoff,))
+            return max(cur.rowcount, 0)
 
     async def zones(self) -> list[str]:
         async with self._pool.connection() as conn:
@@ -175,11 +184,24 @@ class PgRepo:
                 )
                 row = await cur.fetchone()
                 return alert.model_copy(update={"id": row["id"]})
-            await conn.execute(
-                "UPDATE alerts SET closed_at = %s, peak_score = %s, summary = %s WHERE id = %s",
+            cur = await conn.execute(
+                "UPDATE alerts SET closed_at = %s, peak_score = %s, summary = %s WHERE id = %s "
+                "RETURNING acknowledged_at",
                 (alert.closed_at, alert.peak_score, alert.summary, alert.id),
             )
-            return alert
+            row = await cur.fetchone()
+            # the alert engine's copy cannot know about an acknowledgement; the database does
+            return alert.model_copy(update={"acknowledged_at": row["acknowledged_at"]}) if row else alert
+
+    async def acknowledge_alert(self, alert_id: int, ts: datetime) -> Alert | None:
+        async with self._pool.connection() as conn:
+            cur = await conn.execute(
+                f"UPDATE alerts SET acknowledged_at = COALESCE(acknowledged_at, %s) WHERE id = %s "
+                f"RETURNING {_ALERT_COLS}",
+                (ts, alert_id),
+            )
+            row = await cur.fetchone()
+        return _alert(row) if row else None
 
     async def open_alerts(self) -> list[Alert]:
         return await self.list_alerts(active_only=True, zone=None, limit=10_000)

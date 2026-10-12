@@ -70,6 +70,7 @@ class Alert(BaseModel):
     severity: str  # "critical" for BREACHED, otherwise "warning"
     opened_at: datetime
     closed_at: datetime | None = None
+    acknowledged_at: datetime | None = None  # an operator has seen it; does not close it
     peak_score: float | None = None
     summary: str | None = None
     model_version: str | None = None

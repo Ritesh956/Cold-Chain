@@ -480,6 +480,7 @@ version = "0.1.0"
 source = { editable = "services/ml-api" }
 dependencies = [
     { name = "coldchain-ml" },
+    { name = "coldchain-schemas" },
     { name = "fastapi" },
     { name = "prometheus-client" },
     { name = "uvicorn" },
@@ -488,6 +489,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "coldchain-ml", editable = "ml" },
+    { name = "coldchain-schemas", editable = "libs/coldchain_schemas" },
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "prometheus-client", specifier = ">=0.21,<1" },
     { name = "uvicorn", specifier = ">=0.32,<1" },
@@ -498,6 +500,7 @@ name = "coldchain-monitor"
 version = "0.1.0"
 source = { editable = "services/monitor" }
 dependencies = [
+    { name = "coldchain-schemas" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "numpy" },
@@ -507,6 +510,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "coldchain-schemas", editable = "libs/coldchain_schemas" },
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "httpx", specifier = ">=0.27,<1" },
     { name = "numpy", specifier = ">=2.0,<3" },

@@ -211,3 +211,65 @@ async def test_slow_subscriber_loses_oldest_events_instead_of_blocking():
             b.publish({"type": "reading", "i": i})
         assert [q.get_nowait()["i"] for _ in range(q.qsize())] == [7, 8, 9]
         assert b.dropped == 7
+
+
+# --------------------------------------------------------------- authentication
+def _protected_client(key: str = "s3cret") -> TestClient:
+    return TestClient(create_app(make_deps(), Settings(api_key=key), run_background=False))
+
+
+def test_v1_requires_the_api_key_when_one_is_configured():
+    with _protected_client() as c:
+        assert c.get("/v1/zones").status_code == 401
+        assert c.get("/v1/zones", headers={"X-API-Key": "wrong"}).status_code == 401
+        assert c.get("/v1/zones", headers={"X-API-Key": "s3cret"}).status_code == 200
+        assert c.get("/v1/alerts", headers={"Authorization": "Bearer s3cret"}).status_code == 200
+        assert c.post("/v1/incidents", json={"text": "pallet crushed"}).status_code == 401
+        ok = c.post("/v1/incidents", json={"text": "pallet crushed"}, headers={"X-API-Key": "s3cret"})
+        assert ok.status_code == 201
+
+
+def test_ops_endpoints_stay_open_and_rejections_are_counted():
+    with _protected_client() as c:
+        assert c.get("/healthz").status_code == 200 and c.get("/readyz").status_code == 200
+        c.get("/v1/zones")
+        text = c.get("/metrics").text
+        assert 'status="401"' in text
+
+
+def test_no_key_configured_leaves_the_api_open(seeded):
+    c, _ = seeded
+    assert c.get("/v1/zones").status_code == 200
+
+
+# --------------------------------------------------------------- acknowledging alerts
+def test_acknowledge_marks_the_alert_keeps_it_open_and_pushes_an_event(seeded):
+    c, deps = seeded
+    alert = c.get("/v1/alerts").json()[0]
+    assert alert["acknowledged_at"] is None
+    r = c.post(f"/v1/alerts/{alert['id']}/ack")
+    assert r.status_code == 200
+    acked = r.json()
+    assert acked["acknowledged_at"] is not None and acked["closed_at"] is None
+    again = c.post(f"/v1/alerts/{alert['id']}/ack").json()
+    assert again["acknowledged_at"] == acked["acknowledged_at"]  # idempotent
+    assert c.get("/v1/alerts").json()[0]["acknowledged_at"] == acked["acknowledged_at"]
+
+
+def test_acknowledging_an_unknown_alert_is_404_and_a_bad_id_is_422(seeded):
+    c, _ = seeded
+    assert c.post("/v1/alerts/9999/ack").status_code == 404
+    assert c.post("/v1/alerts/abc/ack").status_code == 422
+
+
+async def test_acknowledgement_is_pushed_to_live_subscribers():
+    deps = make_deps()
+    saved = await deps.repo.save_alert(
+        Alert(zone="A", kind=AlertKind.BREACHED, severity="critical", opened_at=T0)
+    )
+    async with deps.broadcaster.subscribe() as q:
+        with TestClient(create_app(deps, Settings(), run_background=False)) as c:
+            c.post(f"/v1/alerts/{saved.id}/ack")
+        ev = q.get_nowait()
+    assert ev["type"] == "alert" and ev["action"] == "acknowledged"
+    assert ev["alert"]["id"] == saved.id and ev["alert"]["acknowledged_at"] is not None

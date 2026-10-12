@@ -19,9 +19,14 @@ class DataSource(Protocol):
 class HttpSource:
     """Reads recent readings from the core API and metrics text from the ml-api."""
 
-    def __init__(self, core_url: str, ml_api_url: str, timeout_s: float = 15.0) -> None:
-        self._core = httpx.AsyncClient(base_url=core_url, timeout=timeout_s)
-        self._ml = httpx.AsyncClient(base_url=ml_api_url, timeout=timeout_s)
+    def __init__(
+        self, core_url: str, ml_api_url: str, timeout_s: float = 15.0, core_key: str = "", ml_key: str = ""
+    ) -> None:
+        def headers(key: str) -> dict[str, str]:
+            return {"X-API-Key": key} if key else {}
+
+        self._core = httpx.AsyncClient(base_url=core_url, timeout=timeout_s, headers=headers(core_key))
+        self._ml = httpx.AsyncClient(base_url=ml_api_url, timeout=timeout_s, headers=headers(ml_key))
 
     async def _get(self, client: httpx.AsyncClient, path: str, **kw) -> httpx.Response:
         try:

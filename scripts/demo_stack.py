@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
@@ -25,7 +26,12 @@ import uvicorn
 from coldchain_core.app import Deps, create_app
 from coldchain_core.cache import MemoryCache
 from coldchain_core.config import Settings
-from coldchain_core.events import BroadcastAlertPublisher, Broadcaster
+from coldchain_core.events import (
+    BroadcastAlertPublisher,
+    Broadcaster,
+    CompositePublisher,
+    WebhookAlertPublisher,
+)
 from coldchain_core.mlclient import HttpMlApi
 from coldchain_core.repo import MemoryRepo
 from coldchain_schemas import SensorReading
@@ -94,16 +100,28 @@ async def main(rate: float, lead_min: int, port: int, ml_url: str) -> None:
         for model in ("anomaly", "breach"):
             await repo.set_scoring_state(str(z), model, start - MIN)
 
-    settings = Settings(score_every_min=5, score_tick_s=1.0)
-    ml = HttpMlApi(ml_url)
+    # API_KEY / ML_API_KEY / ALERT_WEBHOOK_* from the environment apply here too
+    settings = replace(Settings.from_env(), score_every_min=5, score_tick_s=1.0)
+    ml = HttpMlApi(ml_url, api_key=settings.ml_api_key)
+    sinks = [BroadcastAlertPublisher(bcast)]
+    closers = [ml.close]
+    if settings.alert_webhook_url:
+        webhook = WebhookAlertPublisher(
+            settings.alert_webhook_url,
+            secret=settings.alert_webhook_secret,
+            actions=frozenset(settings.alert_webhook_actions.split(",")),
+        )
+        await webhook.start()
+        sinks.append(webhook)
+        closers.insert(0, webhook.aclose)
     deps = Deps(
         repo=repo,
         cache=cache,
         ml=ml,
-        publisher=BroadcastAlertPublisher(bcast),
+        publisher=CompositePublisher(*sinks),
         broadcaster=bcast,
         source=ReplaySource(_readings(live), rate),
-        closers=[ml.close],
+        closers=closers,
     )
     app = create_app(deps, settings)
     await uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")).serve()
