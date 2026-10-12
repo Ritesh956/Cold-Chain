@@ -36,6 +36,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "ml/src/coldchain_ml/nlp/export.py" = ["E501"]
 "ml/src/coldchain_ml/nlp/report.py" = ["E501"]
 "ml/src/coldchain_ml/registry/promote_incident.py" = ["E501"]
+"scripts/osha_check.py" = ["E501"]  # prose lines of the generated report
 
 [tool.pytest.ini_options]
 testpaths = ["services", "libs", "ml", "tests"]
