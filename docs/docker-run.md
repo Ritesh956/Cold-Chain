@@ -16,6 +16,7 @@ the images and runs the integration tests, but never starts the stack) is descri
 | Alerts | The stream's first real fault (a door left open in zone D, 10:24 to 10:59) produced a breach-risk warning at 10:27, an anomaly alert at 10:36 and a `breached` critical alert at 10:38: **the warning came 11 minutes before the temperature crossed -18 C**. All three closed as the zone recovered. Acknowledging an alert through the API worked and was idempotent. |
 | Dashboard | Docker-built image served on the host; zones, the Live indicator, the critical state, both alert texts and the fault region on the chart rendered correctly in the in-app browser. |
 | Observability | Prometheus scraped `core`, `ml-api` and `monitor` (all up). The provisioned Grafana dashboard rendered with real series for the first time. The monitor reported input drift (per zone and feature) and score drift for both models. |
+| Incident classifier | Registered afterwards (after restoring the opt-in PyTorch group): the gate reproduced the reported macro-F1 exactly (0.7408 test, 0.7950 independent), and after an ml-api restart the container served it. Four hand-written sample reports were labelled as expected (a smoke test, not an accuracy measure). A report posted to `core` was classified, stored in TimescaleDB and listed; an empty text got 422; a report typed into the dashboard form was classified (`damage`, zone C), saved and appeared in the live list without a reload. |
 | Footprint | About 1.6 GiB of memory across the 11 containers while running (MLflow 525 MiB, ml-api 330 MiB, Grafana 193 MiB, the rest under 135 MiB each). |
 
 ## What the run found (and what changed)
@@ -40,6 +41,11 @@ the images and runs the integration tests, but never starts the stack) is descri
   none and `warn` on 5 (compressor current in all four zones, plus zone A temperature). The minimum sample count
   (200) allows a verdict long before a full day, and a defrost cycle is 8 hours. Treat early verdicts with caution.
   Score drift was `ok` (PSI 0.048 anomaly, 0.014 breach).
+- **Registering the incident model needs the opt-in PyTorch group** (`uv sync --all-packages --group nlp`, about
+  1 GB), because `promote_incident` imports the training code for one constant. A plain `uv sync` removes that
+  group again. The ml-api container itself does not need it.
+- **While the ml-api restarted, the monitor said so**: its report listed `GET /metrics failed` instead of
+  crashing or going silent, and the dashboard's drift panel showed that line.
 - **A second excursion in zone D at 13:00 to 13:10.** The zone had barely recovered from the door fault (-19.8 C at
   13:00); the scheduled defrost then pushed it back over the limit (peak -16.6 C). The breach-risk warning came 8
   minutes before that crossing, so the breach alerts match the data. The anomaly alert opened 2 minutes into the
@@ -47,9 +53,8 @@ the images and runs the integration tests, but never starts the stack) is descri
 
 ## Not verified
 
-- **The incident classifier in Docker.** Registering it needs the opt-in PyTorch group (`uv sync --all-packages
-  --group nlp`, about 1 GB), which was not installed, so the ml-api ran without it and the incident endpoint was
-  not exercised. The dashboard's incident panel was therefore not run against the Compose stack.
+- **Incident classification quality in Docker:** only the plumbing was exercised (see above), not accuracy; the
+  model card has the measured results.
 - With the `API_KEY` / `DASHBOARD_PASSWORD` set (the run had no authentication), the alert webhook, and readings
   retention.
 - Restarts and recovery: stopping and starting services mid-stream, the ml-api failing fast when the registry has no

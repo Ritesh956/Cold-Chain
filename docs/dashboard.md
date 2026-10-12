@@ -60,8 +60,8 @@ With Compose: the `app` profile includes the dashboard on http://localhost:3000.
   (a safety report typed in, classified by the real int8 model, listed live).
 - **Also verified:** the Docker-built image against the Compose stack ([docker-run.md](docker-run.md)): live
   zones, a critical zone with both alert texts and the fault region on the chart.
-- **Not verified:** the incident panel against the Compose stack (the incident model was not registered there);
-  browsers other than the in-app one; screen readers (it uses landmarks, `role=status`
+- The incident panel against the Compose stack too: a report typed into the form was classified, saved and listed live.
+- **Not verified:** browsers other than the in-app one; screen readers (it uses landmarks, `role=status`
   and text labels, but was not tested with one).
 
 ## Limitations

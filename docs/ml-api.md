@@ -161,8 +161,9 @@ With Docker: `docker compose --profile core --profile ml up -d --build`, then ru
 `MLFLOW_TRACKING_URI=http://localhost:5000` so the registry inside Compose has a champion.
 **Verified:** the image builds in CI (GitHub Actions), imports its dependencies and runs as a
 non-root user; and in the Compose stack ([docker-run.md](docker-run.md)) the container loaded the anomaly and
-breach models from the Compose MLflow server and scored a live stream. **Not verified:** the incident model in
-Compose (registering it needs the opt-in PyTorch group).
+breach models from the Compose MLflow server and scored a live stream. After the incident model was registered
+(which needs the opt-in PyTorch group) it served that too, and `core` and the dashboard classified a report through
+it. **Not verified:** latency or throughput inside Compose.
 
 ## Limitations
 

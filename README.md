@@ -110,6 +110,6 @@ are no accounts).
 **Docker:** the full Compose stack (data plane, MLflow, ml-api, `core`, dashboard, simulator, monitor, Prometheus,
 Grafana) was run end to end once, on 2026-10-13: a simulated door fault produced the expected alerts on the
 dashboard and Grafana rendered. What that run showed, what it fixed (MinIO's images had been withdrawn, so the
-stack did not start) and what it did not cover (the incident classifier, authentication, the webhook, restarts) is
+stack did not start) and what it did not cover (authentication, the webhook, retention, restarts) is
 in [docs/docker-run.md](docs/docker-run.md). CI builds every image and runs the integration tests against real
 TimescaleDB, NATS and Redis, but does not start the stack.
