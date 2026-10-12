@@ -9,14 +9,15 @@ text classification, and an LLM assistant that answers from the platform's own d
 > (DistilBERT, ONNX int8), the model-serving API for all three, and the `core` service (ingest,
 > history, alerts with acknowledgement and an optional webhook, incident reports, shared-key auth, opt-in
 > retention), the drift monitor with a Prometheus/Grafana setup (config-validated only, never run), and a live
-> dashboard (Next.js). **Not built yet:** demand forecasting and slotting
-> (waiting on the M5 dataset), computer vision (YOLO, tracking, OCR), the LLM assistant, and any cloud
-> deployment. The results table holds measured numbers only.
+> dashboard (Next.js), plus a 28-day outflow forecast and item slotting tiers on real M5 retail data (evaluation
+> only: not served and not connected to `core`). **Not built yet:** computer vision (YOLO, tracking, OCR), the
+> LLM assistant, and any cloud deployment. The results table holds measured numbers only.
 
 Inspired by public descriptions of highly automated frozen warehouses. It is not affiliated
 with, and does not use data from, any real operator. **All sensor data and all incident text are
-synthetic** (see [docs/data-sheet.md](docs/data-sheet.md)); the only real data used is one public
-machine-temperature series for a sanity check.
+synthetic** (see [docs/data-sheet.md](docs/data-sheet.md)). Real public data is used for the demand
+forecast and slotting (M5 retail sales, reframed as warehouse outflow), a machine-temperature sanity check
+(NAB) and a real-text check of the incident classifier (OSHA injury reports).
 
 Plan and architecture: [docs/PROPOSAL.md](docs/PROPOSAL.md). Dashboard: [docs/dashboard.md](docs/dashboard.md).
 Resume bullets and interview Q&A: [docs/interview-notes.md](docs/interview-notes.md).
@@ -74,7 +75,7 @@ services/core/            NATS ingest -> Postgres history, scoring orchestration
 services/monitor/         drift checks (PSI) on live inputs and model scores, Prometheus metrics
 dashboard/                Next.js live dashboard (zones, alerts, drift)
 ml/                       training, evaluation, serving classes and model-registry code
-scripts/                  data download (NAB), benchmarks, contract checks
+scripts/                  data download (NAB, M5), benchmarks, contract checks
 infra/                    compose helpers, MLflow image, Prometheus and Grafana config
 docs/                     proposal, data sheet, service docs, model cards, generated results
 ```
@@ -93,12 +94,16 @@ Every row has a baseline, a stated split and a model card or doc. Rows are added
 | Pipeline (`core`) | Simulated 7-day history through real NATS, TimescaleDB, Redis (CI) | n/a (plumbing) | Idempotent ingest, scorer that never skips minutes, alert state machine | Stored exactly once (also after republishing); alerts equal the offline expectation. On a real 22-min door fault: breach-risk warning 6 min before the crossing. | [doc](docs/core.md) |
 | Drift monitor | Synthetic zone-days (360), with injected sensor bias and compressor drift | n/a (statistics) | PSI on live inputs vs training reference; PSI on model scores vs early baseline | 1 of 272 anomaly-free days flagged; every injected shift (+0.5 C, current +10%, stuck compressor) flagged on 272 of 272. Easy case: low-noise synthetic data. | [doc](docs/monitor.md) |
 
+| Volume forecast (28 days, per item) | **Real** M5 FOODS sales, reframed as warehouse outflow (1,437 items, 4 rolling test blocks) | Seasonal mean of the last 4 weeks: WAPE 0.316 (seasonal naive 0.362, 28-day average 0.332) | Global LightGBM (one model, direct multi-horizon) | WAPE **0.285**: 0.031 lower than the best baseline (95% CI 0.026 to 0.037), better on 88% of items and at all 4 origins. Total daily outflow WAPE 0.053 vs 0.069. A modest gain; consecutive spring blocks only, point forecasts only, not served. | [card](docs/model-cards/forecast.md) |
+| Item slotting tiers | **Real** M5 FOODS sales, 1,355 items, two 52-week windows | ABC-XYZ rules: silhouette 0.13, year-over-year ARI 0.41 | k-means (k=5) | Silhouette 0.30 but **less stable than the rules** (ARI 0.31 vs 0.41). HDBSCAN found no clusters with the setting fixed in advance. Groups items only: no layout or pick-time outcome is modelled. | [card](docs/model-cards/slotting.md) |
+
 _Synthetic-data results measure fit to my simulator and generator, not real-world performance._
 
 ## Not done yet (so nobody has to guess)
 
-Demand forecasting and slotting (needs the Kaggle M5 data), computer vision (detector, tracking, OCR,
-damaged-pallet classifier, RTSP worker), the LLM assistant, cloud deployment, real-text evaluation of the
+Serving the forecast and slotting models, an inbound or pallet-level forecast, prediction intervals, computer
+vision (detector, tracking, OCR, damaged-pallet classifier, RTSP worker), the LLM assistant, cloud deployment,
+real-text evaluation of the
 incident classes other than `safety`, and per-user authentication (the services take one shared API key; there
 are no accounts).
 

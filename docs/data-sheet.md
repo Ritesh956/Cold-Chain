@@ -5,8 +5,8 @@ Every dataset, whether it is real or synthetic, and its licence. Updated as data
 | Dataset | Used for | Real / synthetic | Licence / terms | Status |
 |---|---|---|---|---|
 | Freezer sensor history (`coldchain_simulator`) | Anomaly detection, breach prediction | **SYNTHETIC** | Ours (MIT) | Done ✅ |
-| M5 Forecasting (Kaggle), FOODS subset | Volume forecast, slotting | Real retail sales, **reframed** as warehouse outflow | Kaggle competition terms; not redistributed | Week 2 |
-| Inbound pallet volumes | Forecast | **SYNTHETIC** (replenishment policy over M5 demand) | Ours | Week 2 |
+| M5 Forecasting - Accuracy (Kaggle), FOODS category: `calendar.csv`, `sales_train_evaluation.csv`, `sell_prices.csv` (1,437 items, 10 stores, 1,941 days to 2016-05-22) | Volume forecast, slotting | Real retail sales, **reframed** as warehouse outflow (units per item per day, summed over stores). Sales are not stock demand; no unit-to-pallet conversion | Kaggle competition terms; not redistributed, fetched with your own account by `scripts/download_m5.py` into `data/real/m5/` (git-ignored) | Done: [forecast](results/forecast_m5.md), [slotting](results/slotting_m5.md) |
+| Inbound pallet volumes | Forecast | **SYNTHETIC** (replenishment policy over M5 demand) | Ours | **Not built.** Only outflow is forecast; there is no inbound or pallet series |
 | NAB `machine_temperature_system_failure` (commit `ea702d7`) | Real-data sanity check for anomaly detection | Real, industrial machine (not a freezer), units undocumented | MIT (`LICENSE.txt` at that commit); not redistributed, fetched by `scripts/download_nab.py` | Done ✅ |
 | Roboflow Universe pallet/forklift/person sets | Detector training | Real | Per-dataset (recorded here when chosen) | Week 3 |
 | Own annotated images (~200, CVAT) | Detector training/test | Real, self-labelled | Source video licences recorded here | Week 3 |

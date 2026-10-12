@@ -1,0 +1,140 @@
+{
+  "n_items": 1355,
+  "n_items_total": 1437,
+  "window_weeks": 52,
+  "years": [
+    "2014-05-26 to 2015-05-24",
+    "2015-05-25 to 2016-05-22"
+  ],
+  "abc_xyz": {
+    "classes_used": 9,
+    "sizes": {
+      "AX": 447,
+      "AY": 109,
+      "AZ": 16,
+      "BX": 346,
+      "BY": 97,
+      "BZ": 6,
+      "CX": 207,
+      "CY": 105,
+      "CZ": 22
+    },
+    "silhouette": 0.12856202573093103,
+    "year_over_year_ari": 0.4105142271088953,
+    "abc_only_year_over_year_ari": 0.5245671476735918
+  },
+  "kmeans": {
+    "k": 5,
+    "silhouette_by_k": {
+      "3": 0.270406356269744,
+      "4": 0.28315363894515955,
+      "5": 0.29760401992340785,
+      "6": 0.26254719316026565,
+      "7": 0.2685716547930398,
+      "8": 0.2618139077548263
+    },
+    "silhouette": 0.29760401992340785,
+    "year_over_year_ari": 0.30887696934559294,
+    "subsample_ari_mean": 0.9596299264629614,
+    "subsample_ari_min": 0.8775727427405758,
+    "ari_vs_abc_xyz": 0.26300002333543115,
+    "nmi_vs_abc_xyz": 0.41053298926313353,
+    "ari_vs_abc": 0.1243982732483728,
+    "tiers": [
+      {
+        "tier": 1,
+        "n": 246,
+        "median_units_per_day": 38.31593406593407,
+        "median_cv_week": 0.23817487943302473,
+        "median_dow_amp": 0.4210475317286826,
+        "median_zero_share": 0.0027472527472527475,
+        "share_of_volume": 0.5504640030337258,
+        "abc_mix": [
+          1.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "tier": 2,
+        "n": 527,
+        "median_units_per_day": 9.464285714285715,
+        "median_cv_week": 0.24343290881778584,
+        "median_dow_amp": 0.3759590792838874,
+        "median_zero_share": 0.005494505494505495,
+        "share_of_volume": 0.21098786123621754,
+        "abc_mix": [
+          0.32447817836812143,
+          0.4971537001897533,
+          0.17836812144212524
+        ]
+      },
+      {
+        "tier": 3,
+        "n": 231,
+        "median_units_per_day": 8.027472527472527,
+        "median_cv_week": 0.7353948640938144,
+        "median_dow_amp": 0.4365384615384615,
+        "median_zero_share": 0.29120879120879123,
+        "share_of_volume": 0.11807539872345008,
+        "abc_mix": [
+          0.3246753246753247,
+          0.2987012987012987,
+          0.37662337662337664
+        ]
+      },
+      {
+        "tier": 4,
+        "n": 42,
+        "median_units_per_day": 6.638736263736265,
+        "median_cv_week": 1.3735050698980658,
+        "median_dow_amp": 0.5709465571516446,
+        "median_zero_share": 0.5906593406593407,
+        "share_of_volume": 0.015446820357706807,
+        "abc_mix": [
+          0.35714285714285715,
+          0.14285714285714285,
+          0.5
+        ]
+      },
+      {
+        "tier": 5,
+        "n": 309,
+        "median_units_per_day": 6.508241758241757,
+        "median_cv_week": 0.29847020489015963,
+        "median_dow_amp": 0.6044176706827309,
+        "median_zero_share": 0.04120879120879121,
+        "share_of_volume": 0.10502591664889986,
+        "abc_mix": [
+          0.21035598705501618,
+          0.36245954692556637,
+          0.42718446601941745
+        ]
+      }
+    ]
+  },
+  "hdbscan": {
+    "setting": "min_cluster_size=25 (fixed in advance)",
+    "clusters": 0,
+    "noise_share": 1.0,
+    "silhouette_excl_noise": null,
+    "year_over_year_ari": null,
+    "ari_vs_abc_xyz": null,
+    "sizes": {
+      "-1": 1355
+    }
+  },
+  "hdbscan_followup": {
+    "setting": "min_cluster_size=25, min_samples=5 (tried after the first was all noise)",
+    "clusters": 2,
+    "noise_share": 0.25904059040590405,
+    "silhouette_excl_noise": 0.41513178193366285,
+    "year_over_year_ari": 0.08151502224804864,
+    "ari_vs_abc_xyz": 0.1487279556705936,
+    "sizes": {
+      "-1": 351,
+      "0": 965,
+      "1": 39
+    }
+  }
+}
