@@ -93,7 +93,7 @@ Last updated 2026-10-12. The 8-week plan above is a work-package schedule, not e
 | Drift monitor, Grafana | Built; compose config validated, **never run** (Docker was off) | [monitor](monitor.md), `services/monitor`, `infra/observability` |
 | Dashboard (Next.js) | Built; browser-checked against a no-Docker replay, Docker image not built locally | [dashboard](dashboard.md), `dashboard/` |
 | Cloud deployment | Not started; CI builds the images and runs integration tests on real NATS/TimescaleDB/Redis | |
-| README, model cards, results | Partial: README and 4 model cards/docs exist; no GIF, resume bullets or interview Q&A yet | |
+| README, model cards, results | Done for what is built: README with a screen-capture GIF, 3 model cards plus service docs, [resume bullets and interview Q&A](interview-notes.md) | |
 
 Deviations from the plan, and why:
 

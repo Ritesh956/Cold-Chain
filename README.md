@@ -18,6 +18,12 @@ synthetic** (see [docs/data-sheet.md](docs/data-sheet.md)); the only real data u
 machine-temperature series for a sanity check.
 
 Plan and architecture: [docs/PROPOSAL.md](docs/PROPOSAL.md). Dashboard: [docs/dashboard.md](docs/dashboard.md).
+Resume bullets and interview Q&A: [docs/interview-notes.md](docs/interview-notes.md).
+
+![The dashboard replaying a synthetic door fault: Zone C goes from normal to a breach-risk warning to a critical breach](docs/img/dashboard.gif)
+
+_Screen capture of the dashboard (Next.js) replaying a **synthetic** door-left-open fault at about 1.5 simulated
+minutes per second, scored by the real trained models. Zone C: normal, breach-risk warning, then breached._
 
 ## Quick start
 
@@ -50,6 +56,13 @@ curl http://localhost:8000/v1/zones      # live zones, then: curl -N http://loca
 
 MLflow: http://localhost:5000 · MinIO console: http://localhost:9001 · NATS monitor: http://localhost:8222
 
+Dashboard http://localhost:3000 (the `app` profile). Drift monitor, Prometheus and Grafana:
+add `--profile observability` (Grafana http://localhost:3001, monitor http://localhost:8090/v1/drift).
+
+**Without Docker**, to see the dashboard working: register the models, start the ml-api, then
+`uv run python scripts/demo_stack.py` (real `core` logic and scorer on in-memory storage, replaying a synthetic
+fault) and `cd dashboard && npm ci && npm run dev`. Steps in [docs/dashboard.md](docs/dashboard.md#run-it).
+
 ## Repo layout
 
 ```
@@ -57,9 +70,11 @@ libs/coldchain_schemas/   shared event schemas (NATS payloads, alerts, ground-tr
 services/simulator/       synthetic freezer sensors with labelled faults (offline + live NATS)
 services/ml-api/          FastAPI model serving: three models loaded from the MLflow registry
 services/core/            NATS ingest -> Postgres history, scoring orchestration, alerts, REST + SSE API
+services/monitor/         drift checks (PSI) on live inputs and model scores, Prometheus metrics
+dashboard/                Next.js live dashboard (zones, alerts, drift)
 ml/                       training, evaluation, serving classes and model-registry code
 scripts/                  data download (NAB), benchmarks, contract checks
-infra/                    compose helpers, MLflow image
+infra/                    compose helpers, MLflow image, Prometheus and Grafana config
 docs/                     proposal, data sheet, service docs, model cards, generated results
 ```
 
@@ -82,6 +97,7 @@ _Synthetic-data results measure fit to my simulator and generator, not real-worl
 ## Not done yet (so nobody has to guess)
 
 Demand forecasting and slotting (needs the Kaggle M5 data), computer vision (detector, tracking,
-OCR, damaged-pallet classifier, RTSP worker), the LLM assistant, the dashboard, drift monitoring and
-Grafana, cloud deployment, any evaluation on real incident text, and a full Compose run (CI builds the
-images and runs the integration tests; the whole stack has not been brought up end to end).
+OCR, damaged-pallet classifier, RTSP worker), the LLM assistant, cloud deployment, any evaluation on real
+incident text, and any authentication. **Never run:** the full Compose stack (CI builds the images and runs
+the integration tests; nothing has brought the whole stack up in Docker, including the monitor, Prometheus,
+Grafana and the dashboard image).
