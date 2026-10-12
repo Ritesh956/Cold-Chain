@@ -58,8 +58,8 @@ With Compose: the `app` profile includes the dashboard on http://localhost:3000.
   `scripts/demo_stack.py` with the real ml-api: live updates, alerts (a critical breach and warnings
   raised by the real models), the drift table, no console errors, no horizontal scroll at 375 px. The incident form was also driven by hand
   (a safety report typed in, classified by the real int8 model, listed live).
-- **Not verified:** the Docker image (Docker was not running; CI builds it) and the Compose stack with the
-  dashboard in it; browsers other than the in-app one; screen readers (it uses landmarks, `role=status`
+- **Not verified:** the Compose stack with the dashboard in it (CI builds the dashboard image but nothing
+  runs it; Docker was not running locally); browsers other than the in-app one; screen readers (it uses landmarks, `role=status`
   and text labels, but was not tested with one).
 
 ## Limitations

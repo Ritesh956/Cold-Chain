@@ -97,7 +97,11 @@ _Synthetic-data results measure fit to my simulator and generator, not real-worl
 
 ## Not done yet (so nobody has to guess)
 
-Demand forecasting and slotting (needs the Kaggle M5 data), computer vision (detector, tracking,
-OCR, damaged-pallet classifier, RTSP worker), the LLM assistant, cloud deployment, any evaluation of the other incident classes on real text, and per-user authentication (the services take one shared API key; there are no accounts). **Never run:** the full Compose stack (CI builds the images and runs
-the integration tests; nothing has brought the whole stack up in Docker, including the monitor, Prometheus,
-Grafana and the dashboard image).
+Demand forecasting and slotting (needs the Kaggle M5 data), computer vision (detector, tracking, OCR,
+damaged-pallet classifier, RTSP worker), the LLM assistant, cloud deployment, real-text evaluation of the
+incident classes other than `safety`, and per-user authentication (the services take one shared API key; there
+are no accounts).
+
+**Never run:** the full Compose stack brought up end to end in Docker, including Prometheus and Grafana (the
+Grafana dashboard has never been rendered). CI builds every image, runs the integration tests against real
+TimescaleDB, NATS and Redis, and passed on the latest push, but nothing starts the images together.

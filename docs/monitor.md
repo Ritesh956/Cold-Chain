@@ -69,8 +69,9 @@ says how it behaves on real freezer data.
 - `API_KEY` protects `/v1/*` (`CORE_API_KEY` and `ML_API_KEY` are what it sends to the services); `/metrics`
   stays open for Prometheus.
 - **Not verified:** the Compose `observability` profile (monitor, Prometheus, Grafana) has been validated
-  with `docker compose config` only. Docker was not running on the development machine, so the images
-  were not built or run and the Grafana dashboard was never rendered.
+  with `docker compose config` only. CI builds the monitor image and checks that it imports and runs as a
+  non-root user, but nothing has started it together with Prometheus and Grafana, and the Grafana dashboard was
+  never rendered. (Docker was not running on the development machine.)
 
 ## Run it
 
