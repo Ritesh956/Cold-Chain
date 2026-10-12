@@ -68,10 +68,11 @@ says how it behaves on real freezer data.
   go to a webhook; drift flags cannot.)
 - `API_KEY` protects `/v1/*` (`CORE_API_KEY` and `ML_API_KEY` are what it sends to the services); `/metrics`
   stays open for Prometheus.
-- **Not verified:** the Compose `observability` profile (monitor, Prometheus, Grafana) has been validated
-  with `docker compose config` only. CI builds the monitor image and checks that it imports and runs as a
-  non-root user, but nothing has started it together with Prometheus and Grafana, and the Grafana dashboard was
-  never rendered. (Docker was not running on the development machine.)
+- **Run in Docker once** ([docker-run.md](docker-run.md)): Prometheus scraped the monitor, `core` and the ml-api,
+  and the Grafana dashboard rendered. **Early verdicts are unreliable:** with under 12 hours of readings per zone
+  it gave one `drift` and four `warn` on anomaly-free data; with a full 1,440-minute window none and five `warn`.
+  `DRIFT_MIN_SAMPLES` (200) allows a verdict long before a full day (a defrost cycle is 8 hours), so read
+  verdicts from the first day with care.
 
 ## Run it
 

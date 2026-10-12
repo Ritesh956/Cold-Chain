@@ -22,6 +22,7 @@ node_modules/
 
 # env & os
 .env
+.env.kaggle
 .DS_Store
 
 models/

@@ -8,7 +8,7 @@ text classification, and an LLM assistant that answers from the platform's own d
 > detection, breach early warning) with a real-data sanity check, an incident-report classifier
 > (DistilBERT, ONNX int8), the model-serving API for all three, and the `core` service (ingest,
 > history, alerts with acknowledgement and an optional webhook, incident reports, shared-key auth, opt-in
-> retention), the drift monitor with a Prometheus/Grafana setup (config-validated only, never run), and a live
+> retention), the drift monitor with a Prometheus/Grafana setup, and a live
 > dashboard (Next.js), plus a 28-day outflow forecast and item slotting tiers on real M5 retail data (evaluation
 > only: not served and not connected to `core`). **Not built yet:** computer vision (YOLO, tracking, OCR), the
 > LLM assistant, and any cloud deployment. The results table holds measured numbers only.
@@ -34,7 +34,7 @@ uv sync --all-packages          # install the workspace (PyTorch is NOT included
 uv run pytest                   # unit tests; integration tests need real NATS/Postgres/Redis and run in CI
 uv run python -m coldchain_simulator generate --out data/synthetic/freezer
 cp .env.example .env
-docker compose --profile core up -d --build   # NATS, Postgres/Timescale, Redis, MinIO, MLflow
+docker compose --profile core up -d --build   # NATS, Postgres/Timescale, Redis, MLflow
 ```
 
 Serve the models (details and measured latency in [docs/ml-api.md](docs/ml-api.md)):
@@ -56,7 +56,7 @@ docker compose --profile core --profile ml --profile app --profile sim up -d --b
 curl http://localhost:8000/v1/zones      # live zones, then: curl -N http://localhost:8000/v1/stream
 ```
 
-MLflow: http://localhost:5000 · MinIO console: http://localhost:9001 · NATS monitor: http://localhost:8222
+MLflow: http://localhost:5000 · NATS monitor: http://localhost:8222
 
 Dashboard http://localhost:3000 (the `app` profile). Drift monitor, Prometheus and Grafana:
 add `--profile observability` (Grafana http://localhost:3001, monitor http://localhost:8090/v1/drift).
@@ -107,6 +107,9 @@ real-text evaluation of the
 incident classes other than `safety`, and per-user authentication (the services take one shared API key; there
 are no accounts).
 
-**Never run:** the full Compose stack brought up end to end in Docker, including Prometheus and Grafana (the
-Grafana dashboard has never been rendered). CI builds every image, runs the integration tests against real
-TimescaleDB, NATS and Redis, and passed on the latest push, but nothing starts the images together.
+**Docker:** the full Compose stack (data plane, MLflow, ml-api, `core`, dashboard, simulator, monitor, Prometheus,
+Grafana) was run end to end once, on 2026-10-13: a simulated door fault produced the expected alerts on the
+dashboard and Grafana rendered. What that run showed, what it fixed (MinIO's images had been withdrawn, so the
+stack did not start) and what it did not cover (the incident classifier, authentication, the webhook, restarts) is
+in [docs/docker-run.md](docs/docker-run.md). CI builds every image and runs the integration tests against real
+TimescaleDB, NATS and Redis, but does not start the stack.

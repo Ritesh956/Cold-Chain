@@ -7,8 +7,9 @@ Before the first run:
   1. Create a free Kaggle account, then Settings > API > Create New Token.
   2. Open https://www.kaggle.com/competitions/m5-forecasting-accuracy and accept the competition rules
      (otherwise the download fails with HTTP 403).
-  3. Put the credentials in `.env`: KAGGLE_USERNAME=... and KAGGLE_KEY=... (a new-style token starts with
-     KGAT_ and is handed to the Kaggle CLI as KAGGLE_API_TOKEN, which this script does for you).
+  3. Put the credentials in `.env.kaggle` (git-ignored): KAGGLE_USERNAME=... and KAGGLE_KEY=...
+     (a new-style token starts with KGAT_ and is handed to the Kaggle CLI as KAGGLE_API_TOKEN, which this
+     script does for you).
   4. Install the CLI somewhere (it is not a project dependency):  pip install kaggle
 
     python scripts/download_m5.py
@@ -28,8 +29,9 @@ FILES = ["calendar.csv", "sales_train_evaluation.csv", "sell_prices.csv"]  # val
 OUT = Path("data/real/m5")
 
 
-def _load_env(path: Path = Path(".env")) -> None:
-    """Read KAGGLE_* lines from .env without overriding variables already set in the environment."""
+def _load_env(path: Path = Path(".env.kaggle")) -> None:
+    """Read KAGGLE_* lines from .env.kaggle without overriding variables already set in the environment.
+    Not .env: Docker Compose hands .env to containers, which must not receive this credential."""
     if not path.exists():
         return
     for line in path.read_text(encoding="utf-8").splitlines():

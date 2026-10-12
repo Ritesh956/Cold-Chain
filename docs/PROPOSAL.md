@@ -90,8 +90,8 @@ Last updated 2026-10-13 (after the M5 forecasting and slotting work). The 8-week
 | CVAT labelling, YOLO, tracking, ONNX/INT8 for vision, RTSP worker | Not started | |
 | OCR/barcode, damaged-pallet classifier | Not started | |
 | LLM assistant + eval harness | Not started | |
-| Drift monitor, Grafana | Built; compose config validated, **never run** (Docker was off) | [monitor](monitor.md), `services/monitor`, `infra/observability` |
-| Dashboard (Next.js) | Built; browser-checked against a no-Docker replay, Docker image not built locally | [dashboard](dashboard.md), `dashboard/` |
+| Drift monitor, Grafana | Built and run in Docker once (alerts, Prometheus targets and the Grafana dashboard worked; partial-window drift verdicts are unreliable) | [monitor](monitor.md), `services/monitor`, `infra/observability` |
+| Dashboard (Next.js) | Built; browser-checked against a no-Docker replay and against the Docker stack ([run](docker-run.md)) | [dashboard](dashboard.md), `dashboard/` |
 | Cloud deployment | Not started; CI builds the images and runs integration tests on real NATS/TimescaleDB/Redis | |
 | README, model cards, results | Done for what is built: README with a screen-capture GIF, 3 model cards plus service docs, [resume bullets and interview Q&A](interview-notes.md) | |
 
@@ -106,4 +106,6 @@ Deviations from the plan, and why:
 - **ml-api serves three models, one as an optional model**, and scores incident reports one at a time
   (dynamic int8 quantisation made batched results depend on their neighbours).
 - **Kubernetes/Helm, Go ingestion and Detectron2 remain cut**, as planned.
+- **MinIO was removed from the Compose stack**: its public images were withdrawn, so MLflow keeps artifacts on a
+  Docker volume. An S3-compatible store returns when the vision track needs one.
 - **Azure:** nothing deployed. The images build in CI; the free-tier plan above is unchanged.

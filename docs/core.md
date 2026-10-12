@@ -94,8 +94,10 @@ curl -N http://localhost:8000/v1/stream
 ```
 
 The simulator replays at 60x (one simulated minute per second) and `core` scores every 5 event
-minutes. **The full Compose stack has not been run end to end** (Docker was not running on the
-development machine); CI builds the images and runs the integration job on service containers.
+minutes. The full Compose stack was run end to end once (see [docker-run.md](docker-run.md): a simulated door fault
+opened a breach-risk warning 11 minutes before the temperature crossed the limit); CI builds the images and
+runs the integration job on service containers. Breach scoring only starts after 1,500 minutes of history and
+`last_scored` means "scored up to" (skipped minutes advance it too).
 
 ## Limitations
 
