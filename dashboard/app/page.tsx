@@ -2,6 +2,7 @@
 
 import { AlertsTable } from "@/components/AlertsTable";
 import { DriftPanel } from "@/components/DriftPanel";
+import { IncidentsPanel } from "@/components/IncidentsPanel";
 import { ZoneCard } from "@/components/ZoneCard";
 import { useColdChain, type Connection } from "@/lib/useColdChain";
 
@@ -52,6 +53,9 @@ export default function Page() {
       <div className="lower">
         <AlertsTable alerts={state.alerts} />
         <DriftPanel report={drift} error={driftError} />
+      </div>
+      <div className="lower">
+        <IncidentsPanel incidents={state.incidents} zones={zones.map((z) => z.zone)} />
       </div>
     </main>
   );

@@ -17,6 +17,9 @@ The proxy targets (`CORE_URL`, `MONITOR_URL`) are fixed **at build time**.
   shaded spans for alert episodes, and the open alerts with the model's plain-English summary.
   Health is written out as well as coloured (Normal / Warning / Critical / No data).
 - **Alerts:** newest first, with open/closed state.
+- **Incident reports:** a form that sends free text (and an optional zone) to `core`, which classifies it with the
+  ml-api model and stores it; rows arrive over the live stream, with the label, the score (a ranking signal, not
+  a probability) and a "needs review" flag for low scores.
 - **Model drift:** PSI per model score and per (zone, feature), with the monitor's state, including
   "not enough data" and "building baseline" instead of a false "stable".
 - **Connection state** (Live / Reconnecting / Offline). The page reseeds from REST after every reconnect,
@@ -28,7 +31,7 @@ The proxy targets (`CORE_URL`, `MONITOR_URL`) are fixed **at build time**.
   dropped because only strictly newer readings extend a series.
 - **Events are batched** (500 ms) before rendering. At the simulator's 60x replay four zones produce
   about 240 events per second; rendering each one would saturate the page.
-- **State logic is a pure module** (`lib/state.ts`) with unit tests (17, vitest): dedupe, ordering,
+- **State logic is a pure module** (`lib/state.ts`) with unit tests (20, vitest): dedupe, ordering,
   capping, alert upsert, history/live merge, health, downsampling.
 - **Sensor dropouts stay as gaps** in the line, not zeros.
 
@@ -50,7 +53,8 @@ With Compose: the `app` profile includes the dashboard on http://localhost:3000.
 
 - **Verified:** unit tests; type check; production build; and a manual run in a browser against
   `scripts/demo_stack.py` with the real ml-api: live updates, alerts (a critical breach and warnings
-  raised by the real models), the drift table, no console errors, no horizontal scroll at 375 px.
+  raised by the real models), the drift table, no console errors, no horizontal scroll at 375 px. The incident form was also driven by hand
+  (a safety report typed in, classified by the real int8 model, listed live).
 - **Not verified:** the Docker image (Docker was not running; CI builds it) and the Compose stack with the
   dashboard in it; browsers other than the in-app one; screen readers (it uses landmarks, `role=status`
   and text labels, but was not tested with one).
@@ -62,4 +66,5 @@ With Compose: the `app` profile includes the dashboard on http://localhost:3000.
 - Read-only: it cannot acknowledge or close alerts.
 - `npm audit` reports advisories in the PostCSS bundled inside Next 15, which only processes this repo's
   own CSS at build time. Not exploitable here, but it is unresolved until Next 16.
-- Incident reports and the assistant are not in the UI (neither is wired into `core` yet).
+- The incident panel submits and lists reports, but a `safety` report does not alert anyone. The assistant is
+  not in the UI (it does not exist yet).

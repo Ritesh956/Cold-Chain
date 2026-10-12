@@ -19,6 +19,7 @@ class MlApi(Protocol):
     async def model_info(self) -> dict[str, Any]: ...
     async def anomaly(self, zone: str, readings: list[dict], return_last: int) -> dict[str, Any]: ...
     async def breach(self, zone: str, readings: list[dict], return_last: int) -> dict[str, Any]: ...
+    async def classify(self, texts: list[str]) -> dict[str, Any]: ...
     async def close(self) -> None: ...
 
 
@@ -47,6 +48,9 @@ class HttpMlApi:
     async def breach(self, zone: str, readings: list[dict], return_last: int) -> dict[str, Any]:
         body = {"zone": zone, "readings": readings, "return_last": return_last}
         return await self._call("POST", "/v1/breach/predict", json=body)
+
+    async def classify(self, texts: list[str]) -> dict[str, Any]:
+        return await self._call("POST", "/v1/incidents/classify", json={"texts": texts})
 
     async def close(self) -> None:
         await self._c.aclose()

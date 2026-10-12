@@ -5,6 +5,7 @@ from coldchain_schemas.events import (
     AlertKind,
     FaultEvent,
     FaultType,
+    Incident,
     SensorReading,
     subject_for,
 )
@@ -15,6 +16,7 @@ __all__ = [
     "AlertKind",
     "FaultEvent",
     "FaultType",
+    "Incident",
     "SensorReading",
     "alert_subject",
     "subject_for",

@@ -260,3 +260,53 @@ th {
     gap: 20px;
   }
 }
+
+.incident-form {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.incident-form textarea {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.form-row select,
+.form-row button {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+.form-row button {
+  margin-left: auto;
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.form-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.review {
+  margin-left: 4px;
+}
+
+.lower + .lower {
+  margin-top: 16px;
+}

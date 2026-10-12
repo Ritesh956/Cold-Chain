@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import datetime, timedelta
 
-from coldchain_schemas import Alert, AlertKind, SensorReading
+from coldchain_schemas import Alert, AlertKind, Incident, SensorReading
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 
@@ -42,6 +42,18 @@ CREATE TABLE IF NOT EXISTS alerts (
 CREATE INDEX IF NOT EXISTS alerts_open_idx ON alerts (zone, kind) WHERE closed_at IS NULL;
 CREATE INDEX IF NOT EXISTS alerts_opened_idx ON alerts (opened_at DESC);
 
+CREATE TABLE IF NOT EXISTS incidents (
+    id bigserial PRIMARY KEY,
+    received_at timestamptz NOT NULL,
+    zone text,
+    text text NOT NULL,
+    label text NOT NULL,
+    confidence double precision NOT NULL,
+    needs_review boolean NOT NULL,
+    model_version text
+);
+CREATE INDEX IF NOT EXISTS incidents_received_idx ON incidents (received_at DESC);
+
 CREATE TABLE IF NOT EXISTS scoring_state (
     zone text NOT NULL,
     model text NOT NULL,
@@ -51,6 +63,7 @@ CREATE TABLE IF NOT EXISTS scoring_state (
 """
 
 _READING_COLS = "zone, ts, temp_c, compressor_on, compressor_current_a"
+_INCIDENT_COLS = "id, received_at, zone, text, label, confidence, needs_review, model_version"
 _ALERT_COLS = "id, zone, kind, severity, opened_at, closed_at, peak_score, summary, model_version"
 
 
@@ -185,3 +198,40 @@ class PgRepo:
                 (*params, limit),
             )
             return [_alert(r) for r in await cur.fetchall()]
+
+    async def save_incident(self, incident: Incident) -> Incident:
+        async with self._pool.connection() as conn:
+            cur = await conn.execute(
+                "INSERT INTO incidents (received_at, zone, text, label, confidence, needs_review, "
+                "model_version) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (
+                    incident.received_at,
+                    incident.zone,
+                    incident.text,
+                    incident.label,
+                    incident.confidence,
+                    incident.needs_review,
+                    incident.model_version,
+                ),
+            )
+            row = await cur.fetchone()
+        return incident.model_copy(update={"id": row["id"]})
+
+    async def list_incidents(
+        self, label: str | None, needs_review: bool | None, limit: int
+    ) -> list[Incident]:
+        where, params = [], []
+        if label is not None:
+            where.append("label = %s")
+            params.append(label)
+        if needs_review is not None:
+            where.append("needs_review = %s")
+            params.append(needs_review)
+        clause = f"WHERE {' AND '.join(where)}" if where else ""
+        async with self._pool.connection() as conn:
+            cur = await conn.execute(
+                f"SELECT {_INCIDENT_COLS} FROM incidents {clause} "
+                "ORDER BY received_at DESC, id DESC LIMIT %s",
+                (*params, limit),
+            )
+            return [Incident(**r) for r in await cur.fetchall()]

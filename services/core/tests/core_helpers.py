@@ -83,6 +83,21 @@ class FakeMl:
             "points": self._points("breach", readings, return_last),
         }
 
+    async def classify(self, texts: list[str]) -> dict[str, Any]:
+        self.calls.append(("classify", "", len(texts), len(texts)))
+        if self.fail:
+            raise self.fail
+        results = []
+        for t in texts:
+            low = t.lower()
+            label = "safety" if "injur" in low else "temperature" if "warm" in low else "damage"
+            conf = 0.4 if "unclear" in low else 0.95
+            results.append(
+                {"label": label, "confidence": conf, "scores": {label: conf}, "needs_review": conf < 0.5}
+            )
+        model = {"name": "coldchain-incident", "version": "7"}
+        return {"model": model, "review_below": 0.5, "results": results}
+
     async def close(self) -> None:
         return None
 

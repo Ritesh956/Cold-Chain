@@ -7,12 +7,14 @@ import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Any
 
-from coldchain_schemas import Alert, SensorReading
+from coldchain_schemas import Alert, Incident, SensorReading
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from pydantic import BaseModel, Field
 
 from coldchain_core.alerts import AlertEngine
 from coldchain_core.cache import LatestCache
@@ -20,7 +22,7 @@ from coldchain_core.config import Settings
 from coldchain_core.events import AlertPublisher, Broadcaster
 from coldchain_core.ingest import IngestWorker, Source
 from coldchain_core.metrics import Metrics
-from coldchain_core.mlclient import MlApi
+from coldchain_core.mlclient import MlApi, MlApiError
 from coldchain_core.repo import Repo
 from coldchain_core.scoring import MODELS, Scorer
 
@@ -91,6 +93,11 @@ async def build_default_deps(settings: Settings, broadcaster: Broadcaster) -> De
         nats_ok=lambda: nc.is_connected,
         closers=[repo.close, cache.close, ml.close, nc.drain],
     )
+
+
+class IncidentIn(BaseModel):
+    text: str = Field(min_length=1, max_length=2000, description="Free-text incident report")
+    zone: str | None = Field(default=None, max_length=32)
 
 
 def _sse(event: str, data: dict[str, Any]) -> str:
@@ -221,6 +228,43 @@ def create_app(
         limit: int = Query(50, ge=1, le=500),
     ) -> list[Alert]:
         return await request.app.state.deps.repo.list_alerts(status == "active", zone, limit)
+
+    @app.post("/v1/incidents", response_model=Incident, status_code=201, tags=["incidents"])
+    async def create_incident(body: IncidentIn, request: Request) -> Incident:
+        """Classify a report with the ml-api, store it, and push it to live clients."""
+        d: Deps = request.app.state.deps
+        text = body.text.strip()
+        if not text:
+            raise HTTPException(422, "text must not be blank")
+        try:
+            res = await d.ml.classify([text])
+        except MlApiError as e:
+            metrics.incidents.labels("classifier_unavailable" if e.retryable else "classifier_rejected").inc()
+            raise HTTPException(503 if e.retryable else 422, f"incident classifier: {e}") from e
+        top = res["results"][0]
+        incident = await d.repo.save_incident(
+            Incident(
+                received_at=datetime.now(UTC),
+                zone=body.zone,
+                text=text,
+                label=top["label"],
+                confidence=top["confidence"],
+                needs_review=top["needs_review"],
+                model_version=res.get("model", {}).get("version"),
+            )
+        )
+        metrics.incidents.labels(incident.label).inc()
+        d.broadcaster.publish({"type": "incident", "incident": json.loads(incident.model_dump_json())})
+        return incident
+
+    @app.get("/v1/incidents", response_model=list[Incident], tags=["incidents"])
+    async def incidents(
+        request: Request,
+        label: str | None = Query(None, pattern="^(damage|temperature|delay|safety)$"),
+        needs_review: bool | None = None,
+        limit: int = Query(50, ge=1, le=500),
+    ) -> list[Incident]:
+        return await request.app.state.deps.repo.list_incidents(label, needs_review, limit)
 
     @app.get("/v1/stream", tags=["data"])
     async def stream(request: Request) -> StreamingResponse:

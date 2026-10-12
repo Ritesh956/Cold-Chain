@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Protocol
 
-from coldchain_schemas import Alert, SensorReading
+from coldchain_schemas import Alert, Incident, SensorReading
 
 
 class Repo(Protocol):
@@ -38,6 +38,14 @@ class Repo(Protocol):
     async def list_alerts(self, active_only: bool, zone: str | None, limit: int) -> list[Alert]:
         """Newest first by opened_at."""
 
+    async def save_incident(self, incident: Incident) -> Incident:
+        """Insert; returns the stored incident with its id."""
+
+    async def list_incidents(
+        self, label: str | None, needs_review: bool | None, limit: int
+    ) -> list[Incident]:
+        """Newest first by received_at."""
+
 
 class MemoryRepo:
     def __init__(self) -> None:
@@ -45,6 +53,8 @@ class MemoryRepo:
         self._state: dict[tuple[str, str], datetime] = {}
         self._alerts: dict[int, Alert] = {}
         self._next_id = 1
+        self._incidents: list[Incident] = []
+        self._next_incident_id = 1
 
     async def init(self) -> None:
         return None
@@ -101,3 +111,20 @@ class MemoryRepo:
             if (not active_only or a.closed_at is None) and (zone is None or a.zone == zone)
         ]
         return sorted(out, key=lambda a: a.opened_at, reverse=True)[:limit]
+
+    async def save_incident(self, incident: Incident) -> Incident:
+        stored = incident.model_copy(update={"id": self._next_incident_id})
+        self._next_incident_id += 1
+        self._incidents.append(stored)
+        return stored
+
+    async def list_incidents(
+        self, label: str | None, needs_review: bool | None, limit: int
+    ) -> list[Incident]:
+        out = [
+            i
+            for i in self._incidents
+            if (label is None or i.label == label)
+            and (needs_review is None or i.needs_review == needs_review)
+        ]
+        return sorted(out, key=lambda i: (i.received_at, i.id or 0), reverse=True)[:limit]

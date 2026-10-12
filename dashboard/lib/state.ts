@@ -1,7 +1,8 @@
-import type { Alert, Reading, StreamEvent } from "./types";
+import type { Alert, Incident, Reading, StreamEvent } from "./types";
 
 export const MAX_POINTS = 720; // readings kept per zone (12 h at 1/min)
 export const MAX_ALERTS = 100;
+export const MAX_INCIDENTS = 50;
 
 export type ZoneState = {
   zone: string;
@@ -12,9 +13,10 @@ export type ZoneState = {
 export type State = {
   zones: Record<string, ZoneState>;
   alerts: Alert[]; // newest opened first
+  incidents: Incident[]; // newest received first
 };
 
-export const empty: State = { zones: {}, alerts: [] };
+export const empty: State = { zones: {}, alerts: [], incidents: [] };
 
 function addReading(z: ZoneState | undefined, r: Reading): ZoneState {
   const cur = z ?? { zone: r.zone, series: [], latest: null };
@@ -38,10 +40,18 @@ export function upsertAlert(alerts: Alert[], incoming: Alert): Alert[] {
   return next.slice(0, MAX_ALERTS);
 }
 
+export function upsertIncident(incidents: Incident[], incoming: Incident): Incident[] {
+  const i = incoming.id === null ? -1 : incidents.findIndex((x) => x.id === incoming.id);
+  const next = i >= 0 ? incidents.map((x, j) => (j === i ? incoming : x)) : [incoming, ...incidents];
+  next.sort((a, b) => Date.parse(b.received_at) - Date.parse(a.received_at) || (b.id ?? 0) - (a.id ?? 0));
+  return next.slice(0, MAX_INCIDENTS);
+}
+
 /** Apply a batch of stream events. Pure, so it can be tested without a browser. */
 export function applyEvents(state: State, events: StreamEvent[]): State {
   let zones = state.zones;
   let alerts = state.alerts;
+  let incidents = state.incidents;
   for (const e of events) {
     if (e.type === "reading") {
       const prev = zones[e.reading.zone];
@@ -49,13 +59,22 @@ export function applyEvents(state: State, events: StreamEvent[]): State {
       if (next !== prev) zones = { ...zones, [e.reading.zone]: next };
     } else if (e.type === "alert") {
       alerts = upsertAlert(alerts, e.alert);
+    } else if (e.type === "incident") {
+      incidents = upsertIncident(incidents, e.incident);
     }
   }
-  return zones === state.zones && alerts === state.alerts ? state : { zones, alerts };
+  return zones === state.zones && alerts === state.alerts && incidents === state.incidents
+    ? state
+    : { zones, alerts, incidents };
 }
 
 /** Seed from REST: history per zone and the alert list. Newer live data already in `state` wins. */
-export function seed(state: State, history: Record<string, Reading[]>, alerts: Alert[]): State {
+export function seed(
+  state: State,
+  history: Record<string, Reading[]>,
+  alerts: Alert[],
+  incidents: Incident[] = [],
+): State {
   let next = state;
   for (const [zone, rows] of Object.entries(history)) {
     const base: State = { ...next, zones: { ...next.zones, [zone]: { zone, series: [], latest: null } } };
@@ -66,6 +85,7 @@ export function seed(state: State, history: Record<string, Reading[]>, alerts: A
     );
   }
   for (const a of alerts) next = { ...next, alerts: upsertAlert(next.alerts, a) };
+  for (const i of incidents) next = { ...next, incidents: upsertIncident(next.incidents, i) };
   return next;
 }
 

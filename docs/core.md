@@ -22,7 +22,9 @@ simulator ──► NATS JetStream (SENSORS) ──► ingest worker ──► P
 | GET | `/v1/zones` | Every zone: latest reading, open alerts, how far each model has scored |
 | GET | `/v1/zones/{zone}/readings?minutes=360` | Recent history (1 to 10,080 minutes) |
 | GET | `/v1/alerts?status=active\|all&zone=&limit=` | Alert episodes, newest first |
-| GET | `/v1/stream` | Server-Sent Events: `reading` and `alert` events, with keep-alives |
+| POST | `/v1/incidents` | Body `{text, zone?}`: classify a free-text incident report with the ml-api, store it, push it to live clients. 503 if the classifier is down (nothing stored), 422 for invalid text |
+| GET | `/v1/incidents?label=&needs_review=&limit=` | Stored incident reports, newest first |
+| GET | `/v1/stream` | Server-Sent Events: `reading`, `alert` and `incident` events, with keep-alives |
 | GET | `/healthz`, `/readyz`, `/metrics` | Liveness; readiness (database, cache, NATS); Prometheus |
 
 Alert kinds: `anomaly` (readings unusual), `breach_risk` (at risk of exceeding -18 C within 30 min),
@@ -106,5 +108,7 @@ development machine); CI builds the images and runs the integration job on servi
 - **Single scorer and single ingest consumer.** Fine for this scale; multiple replicas would need
   leader election or sharding by zone.
 - No data retention policy yet (Timescale retention would be the natural fit).
-- **Incident reports are not handled here yet.** The ml-api can classify a report
-  (`/v1/incidents/classify`), but `core` has no endpoint or table to receive, store or alert on them.
+- **Incident reports are classified and stored, but never raise an alert.** A `safety` label is shown in the
+  dashboard, not escalated. The classifier was trained on synthetic text and saw no real reports; the score
+  is a ranking signal, not a probability, and `needs_review` marks low-scoring reports. The Postgres side of
+  the incident table is covered by the repository contract tests, which run against real Postgres in CI only.

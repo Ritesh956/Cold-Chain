@@ -35,6 +35,9 @@ class Metrics:
             "core_alert_events_total", "Alert opens and closes", ["kind", "action"], registry=r
         )
         self.active_alerts = Gauge("core_active_alerts", "Currently open alerts", ["kind"], registry=r)
+        self.incidents = Counter(
+            "core_incidents_total", "Incident reports handled, by label or failure", ["outcome"], registry=r
+        )
         self.sse_subscribers = Gauge("core_sse_subscribers", "Connected SSE clients", registry=r)
         self.last_ingest_unixtime = Gauge(
             "core_last_ingest_unixtime", "Wall-clock time of the last stored batch", registry=r

@@ -1,4 +1,4 @@
-import type { Alert, DriftReport, Reading, ZoneSummary } from "./types";
+import type { Alert, DriftReport, Incident, Reading, ZoneSummary } from "./types";
 
 const CORE = "/api/core";
 const MONITOR = "/api/monitor";
@@ -16,6 +16,21 @@ export const fetchReadings = async (zone: string, minutes: number): Promise<Read
     .readings;
 
 export const fetchAlerts = () => getJson<Alert[]>(`${CORE}/v1/alerts?status=all&limit=100`);
+
+export const fetchIncidents = () => getJson<Incident[]>(`${CORE}/v1/incidents?limit=50`);
+
+export async function submitIncident(text: string, zone: string | null): Promise<Incident> {
+  const r = await fetch(`${CORE}/v1/incidents`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text, zone }),
+  });
+  if (!r.ok) {
+    const detail = await r.json().then((j) => j.detail, () => null);
+    throw new Error(typeof detail === "string" ? detail : `request failed (${r.status})`);
+  }
+  return (await r.json()) as Incident;
+}
 
 export const fetchDrift = () => getJson<DriftReport>(`${MONITOR}/v1/drift`);
 

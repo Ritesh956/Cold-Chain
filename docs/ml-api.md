@@ -172,5 +172,6 @@ on the development machine), i.e. the container loading models from the Compose 
 - The incident model's weights are not in the repository (`models/` is git-ignored). A fresh clone
   serves anomaly and breach after `promote`; the incident endpoint stays at 503 until the NLP
   artefacts are rebuilt (17 to 30 minutes of CPU training plus export).
-- Incident classification is not connected to `core` yet: nothing ingests, stores or alerts on reports.
+- Incident classification is connected to `core` (`POST /v1/incidents` classifies and stores a report; see
+  [core.md](core.md)), but nothing alerts on a label.
 - Incident scoring is sequential: 60 reports take over a second.

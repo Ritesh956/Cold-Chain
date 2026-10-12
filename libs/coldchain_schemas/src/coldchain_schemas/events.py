@@ -77,3 +77,16 @@ class Alert(BaseModel):
     @property
     def is_active(self) -> bool:
         return self.closed_at is None
+
+
+class Incident(BaseModel):
+    """A free-text incident report and the classifier's label for it (SYNTHETIC-text model)."""
+
+    id: int | None = None
+    received_at: datetime
+    zone: str | None = None
+    text: str
+    label: str  # damage | temperature | delay | safety
+    confidence: float  # top softmax score: a ranking signal, NOT a calibrated probability
+    needs_review: bool  # the top score is below the model's review threshold
+    model_version: str | None = None

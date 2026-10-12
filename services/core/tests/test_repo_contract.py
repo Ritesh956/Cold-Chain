@@ -8,11 +8,14 @@ import os
 import pytest
 from coldchain_core.pg import PgRepo
 from coldchain_core.repo import MemoryRepo
-from coldchain_schemas import Alert, AlertKind
+from coldchain_schemas import Alert, AlertKind, Incident
 from core_helpers import MIN, T0, history, reading
 
 # a TimescaleDB hypertable cannot be dropped in the same statement as other tables
-RESET_SQL = "DROP TABLE IF EXISTS readings CASCADE; DROP TABLE IF EXISTS zones, alerts, scoring_state CASCADE"
+RESET_SQL = (
+    "DROP TABLE IF EXISTS readings CASCADE; "
+    "DROP TABLE IF EXISTS zones, alerts, scoring_state, incidents CASCADE"
+)
 
 PG_URL = os.getenv("TEST_DATABASE_URL") or os.getenv("DATABASE_URL")
 
@@ -120,3 +123,36 @@ async def test_alert_insert_update_and_filters(repo):
     assert [x.id for x in await repo.list_alerts(True, "A", 10)] == [c.id]
     assert len(await repo.list_alerts(False, None, 2)) == 2
     assert stored.kind is AlertKind.ANOMALY and stored.opened_at.tzinfo is not None
+
+
+def _incident(i: int, label: str = "damage", review: bool = False, zone: str | None = "A") -> Incident:
+    return Incident(
+        received_at=T0 + i * MIN,
+        zone=zone,
+        text=f"report {i}",
+        label=label,
+        confidence=0.4 if review else 0.9,
+        needs_review=review,
+        model_version="3",
+    )
+
+
+async def test_incidents_get_ids_roundtrip_and_list_newest_first(repo):
+    assert await repo.list_incidents(None, None, 10) == []
+    a = await repo.save_incident(_incident(1))
+    b = await repo.save_incident(_incident(2, zone=None))
+    assert a.id is not None and b.id is not None and a.id != b.id
+    got = await repo.list_incidents(None, None, 10)
+    assert [i.id for i in got] == [b.id, a.id]
+    assert got[0] == b and got[0].zone is None  # null zone survives, every field round-trips
+    assert got[1] == a
+
+
+async def test_incident_filters_and_limit(repo):
+    await repo.save_incident(_incident(1, "damage"))
+    await repo.save_incident(_incident(2, "safety", review=True))
+    await repo.save_incident(_incident(3, "safety"))
+    assert [i.text for i in await repo.list_incidents("safety", None, 10)] == ["report 3", "report 2"]
+    assert [i.text for i in await repo.list_incidents(None, True, 10)] == ["report 2"]
+    assert [i.text for i in await repo.list_incidents("safety", False, 10)] == ["report 3"]
+    assert len(await repo.list_incidents(None, None, 2)) == 2

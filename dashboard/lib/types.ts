@@ -22,6 +22,17 @@ export type Alert = {
   model_version: string | null;
 };
 
+export type Incident = {
+  id: number | null;
+  received_at: string;
+  zone: string | null;
+  text: string;
+  label: "damage" | "temperature" | "delay" | "safety";
+  confidence: number; // top softmax score, a ranking signal and NOT a calibrated probability
+  needs_review: boolean;
+  model_version: string | null;
+};
+
 export type ZoneSummary = {
   zone: string;
   latest: Reading | null;
@@ -29,7 +40,8 @@ export type ZoneSummary = {
 
 export type StreamEvent =
   | { type: "reading"; reading: Reading }
-  | { type: "alert"; action: string; alert: Alert };
+  | { type: "alert"; action: string; alert: Alert }
+  | { type: "incident"; incident: Incident };
 
 export type DriftRow = {
   zone: string;

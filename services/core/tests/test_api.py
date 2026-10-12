@@ -105,6 +105,61 @@ def test_metrics_endpoint_reports_traffic(seeded):
     assert "core_sse_subscribers 0.0" in text
 
 
+# --------------------------------------------------------------- incidents
+def test_incident_is_classified_stored_listed_and_counted(seeded):
+    c, deps = seeded
+    r = c.post("/v1/incidents", json={"text": "  Pallet crushed at dock 4  ", "zone": "A"})
+    assert r.status_code == 201
+    inc = r.json()
+    assert inc["id"] is not None and inc["text"] == "Pallet crushed at dock 4"  # trimmed
+    got = (inc["label"], inc["zone"], inc["needs_review"], inc["model_version"])
+    assert got == ("damage", "A", False, "7")
+    assert deps.ml.calls[-1][0] == "classify"
+    assert c.get("/v1/incidents").json() == [inc]
+    assert 'core_incidents_total{outcome="damage"} 1.0' in c.get("/metrics").text
+
+
+def test_low_confidence_incident_is_flagged_for_review_and_filterable(seeded):
+    c, _ = seeded
+    c.post("/v1/incidents", json={"text": "worker injured near freezer door"})
+    c.post("/v1/incidents", json={"text": "unclear note from the night shift"})
+    assert [i["label"] for i in c.get("/v1/incidents", params={"label": "safety"}).json()] == ["safety"]
+    flagged = c.get("/v1/incidents", params={"needs_review": "true"}).json()
+    assert [i["text"] for i in flagged] == ["unclear note from the night shift"]
+    assert c.get("/v1/incidents", params={"label": "bogus"}).status_code == 422
+
+
+def test_incident_validation(seeded):
+    c, _ = seeded
+    assert c.post("/v1/incidents", json={"text": ""}).status_code == 422
+    assert c.post("/v1/incidents", json={"text": "   "}).status_code == 422
+    assert c.post("/v1/incidents", json={"text": "x" * 2001}).status_code == 422
+    assert c.post("/v1/incidents", json={}).status_code == 422
+    assert c.get("/v1/incidents").json() == []  # nothing stored for rejected input
+
+
+def test_incident_when_the_classifier_is_down_is_503_and_nothing_is_stored(seeded):
+    from coldchain_core.mlclient import MlApiError
+
+    c, deps = seeded
+    deps.ml.fail = MlApiError("ml-api 503", retryable=True)
+    assert c.post("/v1/incidents", json={"text": "pallet crushed"}).status_code == 503
+    deps.ml.fail = MlApiError("rejected", retryable=False)
+    assert c.post("/v1/incidents", json={"text": "pallet crushed"}).status_code == 422
+    assert c.get("/v1/incidents").json() == []
+    text = c.get("/metrics").text
+    assert 'core_incidents_total{outcome="classifier_unavailable"} 1.0' in text
+
+
+async def test_incident_is_pushed_to_live_subscribers():
+    deps = make_deps()
+    async with deps.broadcaster.subscribe() as q:
+        with TestClient(create_app(deps, Settings(), run_background=False)) as c:
+            c.post("/v1/incidents", json={"text": "pallet crushed", "zone": "B"})
+        ev = q.get_nowait()
+    assert ev["type"] == "incident" and ev["incident"]["zone"] == "B" and ev["incident"]["label"] == "damage"
+
+
 # --------------------------------------------------------------- live stream (real server)
 def _free_port() -> int:
     with socket.socket() as s:
