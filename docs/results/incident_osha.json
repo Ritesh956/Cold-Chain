@@ -48,6 +48,53 @@
       "temperature": 0.988
     }
   },
+  "baseline_random_sample": {
+    "n": 3000,
+    "safety_recall": 0.336,
+    "safety_recall_ci95": [
+      0.3193168194017944,
+      0.3531026583762617
+    ],
+    "label_counts": {
+      "safety": 1008,
+      "temperature": 918,
+      "damage": 761,
+      "delay": 313
+    },
+    "needs_review_share": 0.0,
+    "confident_n": 3000,
+    "confident_safety_share": 0.336,
+    "median_confidence_by_label": {
+      "damage": 0.586,
+      "delay": 0.551,
+      "safety": 0.633,
+      "temperature": 0.558
+    }
+  },
+  "baseline_cold_storage": {
+    "n": 340,
+    "safety_recall": 0.4,
+    "safety_recall_ci95": [
+      0.3493227703847592,
+      0.4529117469045974
+    ],
+    "label_counts": {
+      "safety": 136,
+      "damage": 120,
+      "temperature": 64,
+      "delay": 20
+    },
+    "needs_review_share": 0.0,
+    "confident_n": 340,
+    "confident_safety_share": 0.4,
+    "median_confidence_by_label": {
+      "damage": 0.627,
+      "delay": 0.537,
+      "safety": 0.649,
+      "temperature": 0.56
+    }
+  },
+  "baseline_c": 30,
   "examples_not_safety": [
     {
       "pred": "delay",

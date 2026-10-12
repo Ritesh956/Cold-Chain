@@ -6,6 +6,10 @@ Every OSHA report is a workplace injury (hospitalisation, amputation or loss of 
 |---|---|---|---|---|---|
 | Random sample | 3,000 | **0.887** (0.875-0.898) | 0.268 | 0.971 | safety 2661, delay 159, temperature 95, damage 85 |
 | Refrigerated warehousing (NAICS 493120) | 340 | **0.829** (0.786-0.866) | 0.359 | 0.894 | safety 282, damage 31, delay 21, temperature 6 |
+| Baseline (TF-IDF + logistic regression), random sample | 3,000 | **0.336** (0.319-0.353) | 0.000 | 0.336 | safety 1008, temperature 918, damage 761, delay 313 |
+| Baseline (TF-IDF + logistic regression), refrigerated warehousing | 340 | **0.400** (0.349-0.453) | 0.000 | 0.400 | safety 136, damage 120, temperature 64, delay 20 |
+
+The baseline has no review threshold, so its needs-review column is 0 by construction and its 'confident' share equals its overall share.
 
 Median top-score by predicted label (a ranking signal, not a probability): damage 0.802, delay 0.812, safety 0.993, temperature 0.833
 

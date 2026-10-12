@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pandas as pd
 from coldchain_ml.common.stats import wilson_interval
+from coldchain_ml.nlp.baseline import fit_baseline
+from coldchain_ml.nlp.corpus import build_corpus
 from coldchain_ml_api.config import Settings
 from coldchain_ml_api.store import Models
 
@@ -73,6 +75,20 @@ def main() -> None:
     c = classify(model, cold["Final Narrative"].tolist())
     results["refrigerated_warehousing_naics_493120"] = summarise(c)
 
+    # the TF-IDF + logistic regression baseline, fitted exactly as in the model card, on the same texts
+    corpus = build_corpus()
+    tr, va = corpus[corpus["split"] == "train"], corpus[corpus["split"] == "val"]
+    pipe, c_chosen, _ = fit_baseline(tr.text.tolist(), tr.label.tolist(), va.text.tolist(), va.label.tolist())
+
+    def baseline_frame(texts: list[str]) -> pd.DataFrame:
+        proba = pipe.predict_proba(texts)
+        labels = pipe.classes_[proba.argmax(axis=1)]
+        return pd.DataFrame({"label": labels, "confidence": proba.max(axis=1), "needs_review": False})
+
+    results["baseline_random_sample"] = summarise(baseline_frame(sample["Final Narrative"].tolist()))
+    results["baseline_cold_storage"] = summarise(baseline_frame(cold["Final Narrative"].tolist()))
+    results["baseline_c"] = c_chosen
+
     # what does it call the reports it gets "wrong"? (a handful, shortened, for the write-up)
     sample = sample.reset_index(drop=True)
     miss = sample[s["label"] != "safety"].copy()
@@ -114,6 +130,11 @@ def to_markdown(r: dict) -> str:
         "|---|---|---|---|---|---|",
         row("Random sample", r["random_sample"]),
         row("Refrigerated warehousing (NAICS 493120)", r["refrigerated_warehousing_naics_493120"]),
+        row("Baseline (TF-IDF + logistic regression), random sample", r["baseline_random_sample"]),
+        row("Baseline (TF-IDF + logistic regression), refrigerated warehousing", r["baseline_cold_storage"]),
+        "",
+        "The baseline has no review threshold, so its needs-review column is 0 by construction and its "
+        "'confident' share equals its overall share.",
         "",
         "Median top-score by predicted label (a ranking signal, not a probability): "
         + ", ".join(f"{k} {v}" for k, v in r["random_sample"]["median_confidence_by_label"].items()),

@@ -75,8 +75,10 @@ The baseline matches it on this data and is cheaper: 3.3 ms per report, about 6,
 0.55 MB, against 21 ms, 34 reports/s (one thread) and 64 MB. I chose to serve the transformer because
 the project is meant to demonstrate fine-tuning, ONNX export, quantisation and serving it, and because
 real incident text is less templated than my generator, which is where pretrained language knowledge
-should matter. **That is a bet, not a finding.** With real reports, rerun
-`nlp.compare` first; if the baseline still ties, serve the baseline.
+should matter. That was a bet when I wrote it. **The OSHA check below is the first evidence on it, and it favours
+the transformer strongly:** on 3,000 real injury narratives the TF-IDF baseline calls only 34% `safety` against
+the transformer's 89%. Real text is where the pretrained model earns its cost. (One class only; see the caveats
+below. Rerun `nlp.compare` on real reports of all four classes before treating this as settled.)
 
 ## What went wrong along the way (kept in the record)
 - **Generator flaw.** The first baseline misread a held-out family (`temperature/product`) as damage
@@ -101,8 +103,14 @@ or the other three classes.
 |---|---|---|---|---|
 | Random sample | 3,000 | **0.887** (0.875-0.898) | 0.268 | 0.971 |
 | Refrigerated warehousing (NAICS 493120) | 340 | **0.829** (0.786-0.866) | 0.359 | 0.894 |
+| *TF-IDF baseline*, random sample | 3,000 | 0.336 (0.319-0.353) | n/a | n/a |
+| *TF-IDF baseline*, refrigerated warehousing | 340 | 0.400 (0.349-0.453) | n/a | n/a |
 
-- **The synthetic-text result does not transfer as cleanly as it looked.** About 11% of real injury narratives are
+- **The synthetic-text tie with the baseline does not hold on real text.** The same TF-IDF + logistic regression
+  that matched the transformer on synthetic reports labels only 34% of real injury reports `safety` (it spreads
+  them over temperature 31%, damage 25%, delay 10%): it learned my generator's topic words, not the concept.
+  The transformer is far more robust, though not good enough.
+- **The transformer's own real-text result is still weak.** About 11% of real injury narratives are
   labelled something else (delay 5%, temperature 3%, damage 3%), and 17% in the cold-store subset.
 - **The score does not reliably catch those errors.** Several misses carry scores of 0.9 to 0.98; the review flag
   (26.8% of reports) helps, but the confident reports are still only 97% safety (89% in cold storage). A `safety`

@@ -23,9 +23,9 @@ read the linked docs and can rebuild the argument yourself.
   at matched false-alarm budgets, where it warns 0.96 of breaches >= 5 min ahead vs 0.62 for the threshold at
   0.22 false alarms per zone-day (0.80 at 0.03), while documenting that at its F1-tuned point it misses most
   drift breaches (0.42).
-- Fine-tuned DistilBERT for incident text and served it as ONNX int8 (4.0x faster, 4x smaller), while
-  reporting honestly that it did **not** beat a TF-IDF baseline (macro-F1 0.733 vs 0.755), on held-out
-  template families plus 120 independently written reports.
+- Fine-tuned DistilBERT for incident text and served it as ONNX int8 (4.0x faster, 4x smaller). On synthetic
+  text it did **not** beat a TF-IDF baseline (macro-F1 0.733 vs 0.755), but on 3,000 real OSHA injury reports it
+  labelled 89% `safety` against 34% for the baseline: the synthetic tie hid a robustness gap.
 - Engineered the pipeline for correctness: idempotent at-least-once ingest, a scorer that never skips
   minutes after an ml-api outage, an alert state machine with hysteresis, and one contract-test suite
   run against both the in-memory and Postgres stores.
@@ -45,9 +45,11 @@ compressor-current signal, which no public dataset has.
 Because the comparison was the point and the result is honest: 0.733 ± 0.014 vs 0.755 macro-F1 on held-out
 families. The corpus is template-generated, so a bag-of-words model can reach most of what is learnable;
 a transformer should matter on real, messy text, so I tested it: 3,000 real OSHA injury narratives, all of which
-should be `safety`. It said safety for 89% (83% for refrigerated-warehouse reports), and some misses carried
-scores above 0.9, so the confidence score cannot be trusted to catch them. That is one class only; I have no real
-text for the others. I kept it served because the project demonstrates the serving stack (ONNX int8, registry gate), and the
+should be `safety`. DistilBERT said safety for 89% (83% for refrigerated-warehouse reports); the TF-IDF baseline
+that tied it on synthetic text managed 34%. So the synthetic tie hid a real difference, and serving the
+transformer is now supported by evidence rather than a bet. Caveats: it is one class only (I have no real text for
+the others), and some of the transformer's misses carry scores above 0.9, so its confidence cannot be trusted to
+catch them. I kept it served because the project demonstrates the serving stack (ONNX int8, registry gate), and the
 card says when to switch to the baseline.
 
 **Why event-level metrics instead of F1 per minute?**

@@ -85,7 +85,7 @@ Last updated 2026-10-12 (after the auth, webhook, incident and anomaly follow-up
 | Breach early warning | Done, synthetic | [model card](model-cards/breach.md) |
 | Model serving + MLflow registry + metrics | Done | [ml-api](ml-api.md) |
 | `core` (NATS ingest, Postgres history, alerts, live API) | Done (built ahead of its planned week); since then: incident reports, alert acknowledgement and webhook, shared-key auth, opt-in retention | [core](core.md) |
-| Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF**; connected to `core` and the dashboard; real-text check done: safety recall 0.89 (0.83 in cold storage) | [model card](model-cards/incident-nlp.md) |
+| Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF there, but far better on real injury text (0.89 vs 0.34 safety recall)**; connected to `core` and the dashboard; real-text check done: safety recall 0.89 (0.83 in cold storage) | [model card](model-cards/incident-nlp.md) |
 | Forecasting and clustering/slotting | Not started (needs the Kaggle M5 token) | |
 | CVAT labelling, YOLO, tracking, ONNX/INT8 for vision, RTSP worker | Not started | |
 | OCR/barcode, damaged-pallet classifier | Not started | |
