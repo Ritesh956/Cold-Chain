@@ -99,6 +99,11 @@ development machine); CI builds the images and runs the integration job on servi
 
 ## Limitations
 
+- **Where the Postgres code has actually run:** the whole repository contract suite (readings, alerts,
+  acknowledgements, incidents, retention) was run against a real **plain PostgreSQL 17** on the development
+  machine and passes. It has **not** been run against TimescaleDB locally (the hypertable branch; CI's service
+  container is the only place that happens), nor the NATS/Redis end-to-end test, nor in Docker.
+
 - **Authentication is one shared key, not user accounts.** Set `API_KEY` and `/v1/*` requires it (`X-API-Key` or
   `Authorization: Bearer`, compared in constant time); health, readiness and metrics stay open. Unset means no
   auth (development), and the service logs that at startup. There are no users, roles, rotation or rate limiting,
@@ -122,9 +127,8 @@ development machine); CI builds the images and runs the integration job on servi
   because the breach model reads 25 hours and the drift monitor 24) deletes readings older than that **before the
   newest stored reading** (event time, so replaying an old history never purges what just arrived), checked
   hourly. Alerts and incident reports are kept. It uses a plain `DELETE`, which works on a TimescaleDB
-  hypertable and plain Postgres; `drop_chunks` would be cheaper at scale. Covered by tests on the in-memory and
-  Postgres stores (Postgres in CI only).
+  hypertable and plain Postgres; `drop_chunks` would be cheaper at scale. Covered by the repository contract tests.
 - **Incident reports are classified and stored, but never raise an alert.** A `safety` label is shown in the
   dashboard, not escalated. The classifier was trained on synthetic text and saw no real reports; the score
   is a ranking signal, not a probability, and `needs_review` marks low-scoring reports. The Postgres side of
-  the incident table is covered by the repository contract tests, which run against real Postgres in CI only.
+  the incident table is covered by the repository contract tests.
