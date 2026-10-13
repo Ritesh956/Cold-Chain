@@ -4,8 +4,10 @@ import logging
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import timedelta
 
 import numpy as np
+import pandas as pd
 from coldchain_schemas.auth import ApiKeyMiddleware, describe
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
@@ -20,6 +22,9 @@ from coldchain_ml_api.schemas import (
     AnomalyResponse,
     BreachPoint,
     BreachResponse,
+    ForecastItem,
+    ForecastRequest,
+    ForecastResponse,
     IncidentRequest,
     IncidentResponse,
     IncidentResult,
@@ -43,7 +48,8 @@ def create_app(models: Models | None = None, settings: Settings | None = None) -
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Fail fast: a service that cannot load its models must not report ready.
         app.state.models = models or Models.load(settings or Settings.from_env())
-        loaded = [app.state.models.anomaly, app.state.models.breach, app.state.models.incident]
+        m = app.state.models
+        loaded = [m.anomaly, m.breach, m.incident, m.forecast]
         for m in (x for x in loaded if x is not None):
             metrics.model_info.labels(model=m.name, version=m.version).set(1)
             log.info("loaded %s v%s", m.name, m.version)
@@ -101,7 +107,50 @@ def create_app(models: Models | None = None, settings: Settings | None = None) -
                 "data": m.incident.config.get("data"),
                 "reported_test": m.incident.config.get("reported_test"),
             }
+        if m.forecast is not None:
+            info[m.forecast.name] = {
+                "version": m.forecast.version,
+                "horizon_days": m.forecast.horizon,
+                "min_history_days": m.forecast.min_history,
+                "max_history_days": m.forecast.max_history,
+                "data": m.forecast.config.get("data"),
+                "reported_test": m.forecast.config.get("reported_test"),
+            }
         return info
+
+    @app.post("/v1/forecast/outflow", response_model=ForecastResponse, tags=["models"])
+    def forecast_outflow(req: ForecastRequest, request: Request) -> ForecastResponse:
+        model = request.app.state.models.forecast
+        if model is None:
+            return JSONResponse(  # type: ignore[return-value]
+                status_code=503,
+                content={"error": {"code": "model_unavailable", "message": "forecast model is not loaded"}},
+            )
+        for it in req.items:
+            if not model.min_history <= len(it.units) <= model.max_history:
+                raise InputError(
+                    "history_length",
+                    f"item {it.item_id!r}: history must be {model.min_history} to {model.max_history} days, "
+                    f"got {len(it.units)}",
+                )
+        ids = [it.item_id for it in req.items]
+        if len(set(ids)) != len(ids):
+            raise InputError("duplicate_item", "item_id values must be unique within a request")
+        recent = np.array([it.units[-model.min_history :] for it in req.items], dtype=float)
+        t0 = time.perf_counter()
+        pred = model.forecast(recent, pd.Timestamp(req.as_of))
+        metrics.inference_seconds.labels(model.name).observe(time.perf_counter() - t0)
+        metrics.predictions.labels(model.name, "ok").inc(len(ids))
+        return ForecastResponse(
+            model=ModelRef(name=model.name, version=model.version),
+            as_of=req.as_of,
+            first_day=req.as_of + timedelta(days=1),
+            horizon_days=model.horizon,
+            items=[
+                ForecastItem(item_id=i, daily_units=[float(x) for x in row], total_units=float(row.sum()))
+                for i, row in zip(ids, pred, strict=True)
+            ],
+        )
 
     @app.post("/v1/incidents/classify", response_model=IncidentResponse, tags=["models"])
     def incidents_classify(req: IncidentRequest, request: Request) -> IncidentResponse:

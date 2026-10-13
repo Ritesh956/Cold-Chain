@@ -12,6 +12,8 @@ class Settings:
     breach_model_uri: str = "models:/coldchain-breach@champion"
     # optional: if it cannot be loaded the incident endpoint answers 503 and the rest keeps working
     incident_model_uri: str = "models:/coldchain-incident@champion"
+    # optional too: without it /v1/forecast/outflow answers 503
+    forecast_model_uri: str = "models:/coldchain-forecast@champion"
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -22,4 +24,5 @@ class Settings:
             anomaly_model_uri=os.getenv("ANOMALY_MODEL_URI", d.anomaly_model_uri),
             breach_model_uri=os.getenv("BREACH_MODEL_URI", d.breach_model_uri),
             incident_model_uri=os.getenv("INCIDENT_MODEL_URI", d.incident_model_uri),
+            forecast_model_uri=os.getenv("FORECAST_MODEL_URI", d.forecast_model_uri),
         )

@@ -1,8 +1,9 @@
 # Model card: 28-day warehouse-outflow forecast
 
 **Status:** evaluated on **real M5 retail sales, reframed as warehouse outflow**. Full tables:
-[results/forecast_m5.md](../results/forecast_m5.md). Code: `ml/src/coldchain_ml/forecast/`. Not served by the
-`ml-api`, not in the MLflow registry, and not connected to `core` or the dashboard.
+[results/forecast_m5.md](../results/forecast_m5.md). Code: `ml/src/coldchain_ml/forecast/`. The
+history-and-calendar-only variant is **served** by the `ml-api` (`POST /v1/forecast/outflow`, registered as
+`coldchain-forecast`); it is not connected to `core` or the dashboard.
 
 ## Task
 For every FOODS item, forecast the units shipped on each of the next 28 days. The series is the M5 sales of
@@ -30,11 +31,17 @@ after the origin leaves every feature unchanged.
 | moving average (28 d) | 0.332 | 1.064 | 14.35 | -3.2% | 0.130 |
 | seasonal mean (4 weeks) | 0.316 | 1.059 | 13.04 | -3.2% | 0.069 |
 | **LightGBM (global)** | **0.285** | **0.948** | **11.90** | -3.0% | **0.053** |
+| LightGBM, history + calendar only (**served**) | 0.297 | 0.974 | 13.73 | -5.2% | 0.068 |
 
 - LightGBM beats the best baseline by 0.0315 WAPE (95% CI 0.026 to 0.037, items resampled) and has the lower
   error on 88% of items. It wins at every one of the four origins (0.266 to 0.305 against 0.301 to 0.335).
 - The gain is largest where volume is lowest: WAPE 0.519 against 0.600 on the slowest third of items, 0.235
   against 0.258 on the fastest third. Error grows slowly with horizon (0.264 for days 1 to 7, 0.300 for days 22 to 28).
+- **The served variant** uses only the item's own sales history and the date (no price, event, SNAP, item age
+  or department): WAPE 0.297, 0.019 better than the best baseline (95% CI 0.008 to 0.027), lower error on 85%
+  of items and at all four origins. The price, event, SNAP, age and department features are worth 0.013 WAPE
+  (95% CI 0.007 to 0.021): about 4%. On the **total** daily outflow the served variant is level with the best
+  baseline (0.068 against 0.069); its edge is at item level. It under-forecasts more (-5.2%).
 - Both the model and the baselines under-forecast (about 3% less than actual, 8% for seasonal naive).
 - By gain, the model relies mostly on recent level (the 7-day and 14-day means carry 72% of it); price features
   carry at least 3%.
@@ -53,11 +60,15 @@ after the origin leaves every feature unchanged.
 - **The 95% interval covers item sampling only.** The four test blocks are consecutive and all in spring 2016, so
   nothing here says how the model does around Christmas, Thanksgiving or Easter, where the calendar features matter
   most and the training window contains only two of each.
-- **Prices of the forecast weeks are assumed known**, as M5 publishes them. A real planner may not know next
-  month's promotions. Price features carry little weight, but no run without them was made.
+- **Prices of the forecast weeks are assumed known by the full model**, as M5 publishes them. A real planner may
+  not know next month's promotions. The served variant needs no price: dropping price and the other calendar
+  features costs 0.013 WAPE (measured above), and it cannot express a planned promotion at all.
 - Point forecasts only. Safety stock and capacity decisions need prediction intervals, which this does not produce.
 - One LightGBM seed and four candidate configurations that differ by 0.003 to 0.02 on a single validation origin,
   so the choice among them is weakly supported.
 - Aggregating over stores makes the series smoother and the problem easier than store-level M5; the numbers must not
   be compared with the M5 leaderboard.
-- Training and evaluation take about 7 minutes on a 20-core CPU. No latency or serving numbers exist.
+- Training and evaluation of both variants take about 9 minutes on a 20-core CPU. Serving latency (26 ms for one
+  item, 96 ms for 200) was measured once from the host into the Docker container, not under load.
+- The served model is refit through the last day of the data, so no held-out score exists for it; the number
+  above is for the same model refit at the last test origin, which the registration gate reproduces exactly.

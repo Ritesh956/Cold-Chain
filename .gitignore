@@ -23,6 +23,8 @@ node_modules/
 # env & os
 .env
 .env.kaggle
+.env.roboflow
+.env.llm
 .DS_Store
 
 models/

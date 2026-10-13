@@ -86,7 +86,7 @@ Last updated 2026-10-13 (after the M5 forecasting and slotting work). The 8-week
 | Model serving + MLflow registry + metrics | Done | [ml-api](ml-api.md) |
 | `core` (NATS ingest, Postgres history, alerts, live API) | Done (built ahead of its planned week); since then: incident reports, alert acknowledgement and webhook, shared-key auth, opt-in retention | [core](core.md) |
 | Incident NLP (BERT fine-tune, ONNX int8, serving) | Done on synthetic text; **no gain over TF-IDF there, but far better on real injury text (0.89 vs 0.34 safety recall)**; connected to `core` and the dashboard; real-text check done: safety recall 0.89 (0.83 in cold storage) | [model card](model-cards/incident-nlp.md) |
-| Forecasting and clustering/slotting | Done as evaluation on real M5 FOODS data; **not served or wired into `core`**. Forecast: LightGBM WAPE 0.285 vs 0.316 for the best baseline. Slotting: k-means is less stable than ABC-XYZ rules; HDBSCAN found no clusters | [forecast](model-cards/forecast.md), [slotting](model-cards/slotting.md) |
+| Forecasting and clustering/slotting | Done on real M5 FOODS data; the forecast (history-only variant) is **served by the ml-api**, neither is wired into `core`. Forecast: LightGBM WAPE 0.285 (served variant 0.297) vs 0.316 for the best baseline. Slotting: k-means is less stable than ABC-XYZ rules; HDBSCAN found no clusters | [forecast](model-cards/forecast.md), [slotting](model-cards/slotting.md) |
 | CVAT labelling, YOLO, tracking, ONNX/INT8 for vision, RTSP worker | Not started | |
 | OCR/barcode, damaged-pallet classifier | Not started | |
 | LLM assistant + eval harness | Not started | |

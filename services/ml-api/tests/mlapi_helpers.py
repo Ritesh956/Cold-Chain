@@ -2,12 +2,14 @@
 
 from dataclasses import replace
 
+import numpy as np
 import pandas as pd
 from coldchain_ml.anomaly.detectors import RobustZScore
 from coldchain_ml.anomaly.features import build_features
 from coldchain_ml.breach.data import BREACH_C, BREACH_FEATURES, build_breach_frame
+from coldchain_ml.forecast.features import SERVED_FEATURES, history_frame
 from coldchain_simulator import SimConfig, generate
-from lightgbm import LGBMClassifier
+from lightgbm import LGBMClassifier, LGBMRegressor
 
 CFG = replace(
     SimConfig(), days=20, zones=("A",), seed=3, n_door_left_open=3, n_power_cut=1, n_compressor_drift=0
@@ -128,3 +130,31 @@ def make_incident_model(review_below: float = 0.7):
         "max_chars": 200,
     }
     return IncidentModel(StubSession(), StubTokenizer(), config, "test")
+
+
+def make_forecast_model(seed: int = 0):
+    """A small LightGBM trained through the same feature path as serving; returns (model wrapper, units)."""
+    from coldchain_ml_api.models import ForecastModel
+
+    rng = np.random.default_rng(seed)
+    n_items, n_days = 30, 300
+    week = np.array([1.0, 0.9, 0.9, 0.9, 1.0, 1.2, 1.3])
+    base = rng.uniform(3, 30, size=(n_items, 1))
+    units = rng.poisson(base * np.tile(week, n_days // 7 + 1)[:n_days]).astype(float)
+    start = pd.Timestamp("2024-01-01")
+    frames, targets = [], []
+    for o in range(100, n_days - 28, 10):
+        frames.append(history_frame(units[:, : o + 1], start + pd.Timedelta(days=o)))
+        targets.append(units[:, o + 1 : o + 29].ravel())
+    model = LGBMRegressor(n_estimators=60, num_leaves=15, min_child_samples=20, random_state=0, verbose=-1)
+    model.fit(pd.concat(frames), np.concatenate(targets))
+    config = {
+        "type": "lightgbm_outflow_forecast",
+        "features": SERVED_FEATURES,
+        "horizon_days": 28,
+        "min_history_days": 90,
+        "max_history_days": 400,
+        "data": "SYNTHETIC (test)",
+        "reported_test": {},
+    }
+    return ForecastModel(model, config, "test"), units, start

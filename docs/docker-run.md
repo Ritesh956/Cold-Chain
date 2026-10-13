@@ -17,6 +17,11 @@ the images and runs the integration tests, but never starts the stack) is descri
 | Dashboard | Docker-built image served on the host; zones, the Live indicator, the critical state, both alert texts and the fault region on the chart rendered correctly in the in-app browser. |
 | Observability | Prometheus scraped `core`, `ml-api` and `monitor` (all up). The provisioned Grafana dashboard rendered with real series for the first time. The monitor reported input drift (per zone and feature) and score drift for both models. |
 | Incident classifier | Registered afterwards (after restoring the opt-in PyTorch group): the gate reproduced the reported macro-F1 exactly (0.7408 test, 0.7950 independent), and after an ml-api restart the container served it. Four hand-written sample reports were labelled as expected (a smoke test, not an accuracy measure). A report posted to `core` was classified, stored in TimescaleDB and listed; an empty text got 422; a report typed into the dashboard form was classified (`damage`, zone C), saved and appeared in the live list without a reload. |
+| Authentication | In a second pass with `API_KEY` and `DASHBOARD_PASSWORD` set (random test values): `core`, the ml-api and the monitor answered 401 to a missing or wrong key on `/v1/*` and 200 to `X-API-Key` or `Authorization: Bearer`; `/healthz` and `/metrics` stayed open and Prometheus kept scraping; `core` kept scoring through the keyed ml-api and the monitor read both of its sources with keys; the dashboard refused a missing or wrong password (401) and served with the right one. |
+| Webhook | A local receiver got an `opened` event for zone B's compressor-drift alert from inside the `core` container, with a valid `X-ColdChain-Signature` (HMAC-SHA256 of the body). Only `opened` was seen; `closed` and retries were not exercised. |
+| Retention | With `RETENTION_DAYS=3`, `core` purged at startup: 39,832 readings became 17,612; the oldest remaining reading was Jan 4 22:05 against a newest of Jan 7 23:27 a minute or so later (the cutoff is 3 days before the newest reading at purge time). Alerts were kept. |
+| Restart recovery | Recreating `core` while an anomaly alert was open: the alert was adopted, not duplicated (8 alerts before and after, one open). `core` logged 46 `ml-api unreachable` errors while the ml-api was still starting, then scored normally without a manual restart. |
+| Forecast | The history-only outflow forecaster was registered (`coldchain-forecast` v1, after its gate reproduced the reported WAPE exactly), the rebuilt ml-api container served it, and a request with real M5 histories got sensible 28-day forecasts: p50 26 ms for 1 item, 51 ms for 50, 96 ms for 200 (7 requests each). Plumbing and latency only. |
 | Footprint | About 1.6 GiB of memory across the 11 containers while running (MLflow 525 MiB, ml-api 330 MiB, Grafana 193 MiB, the rest under 135 MiB each). |
 
 ## What the run found (and what changed)
@@ -46,6 +51,8 @@ the images and runs the integration tests, but never starts the stack) is descri
   group again. The ml-api container itself does not need it.
 - **While the ml-api restarted, the monitor said so**: its report listed `GET /metrics failed` instead of
   crashing or going silent, and the dashboard's drift panel showed that line.
+- **`docker compose up` recreates services when `.env` changes**, including Postgres and MLflow (their data
+  volumes survive, so nothing was lost), and the ml-api briefly drops out, which `core` rides out by retrying.
 - **A second excursion in zone D at 13:00 to 13:10.** The zone had barely recovered from the door fault (-19.8 C at
   13:00); the scheduled defrost then pushed it back over the limit (peak -16.6 C). The breach-risk warning came 8
   minutes before that crossing, so the breach alerts match the data. The anomaly alert opened 2 minutes into the
@@ -55,10 +62,9 @@ the images and runs the integration tests, but never starts the stack) is descri
 
 - **Incident classification quality in Docker:** only the plumbing was exercised (see above), not accuracy; the
   model card has the measured results.
-- With the `API_KEY` / `DASHBOARD_PASSWORD` set (the run had no authentication), the alert webhook, and readings
-  retention.
-- Restarts and recovery: stopping and starting services mid-stream, the ml-api failing fast when the registry has no
-  champion, a long soak.
+- Restarts beyond the one above: stopping and starting the data plane mid-stream, the ml-api failing fast when the
+  registry has no champion, a long soak. Webhook `closed` events and retry behaviour. Authentication with a browser's
+  own password prompt (checked with HTTP requests only).
 - Anything beyond one fault: one door-open fault and one defrost excursion say nothing about detection rates (those
   are in the model cards).
 - Grafana panel contents beyond "renders with data"; browsers other than the in-app one.

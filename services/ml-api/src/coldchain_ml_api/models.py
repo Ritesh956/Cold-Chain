@@ -14,6 +14,7 @@ from coldchain_ml.anomaly.detectors import RobustZScore
 from coldchain_ml.anomaly.events_eval import apply_min_run
 from coldchain_ml.anomaly.features import build_features
 from coldchain_ml.breach.data import BREACH_C, RECENT_MIN, build_breach_frame
+from coldchain_ml.forecast.features import history_frame
 
 OFF_LABEL = "compressor-off duration"
 SIGNAL_LABELS = {"temp": "temperature", "cur_on_360": "compressor current", "off_run": OFF_LABEL}
@@ -94,3 +95,30 @@ class BreachModel:
             for t, b, r in zip(temp, breached, recent, strict=True)
         ]
         return BreachResult(pd.DatetimeIndex(readings["ts"]), state, at_risk, risk, alarm)
+
+
+class ForecastModel:
+    """28-day outflow forecast from an item's own daily sales history and the date (see
+    coldchain_ml.forecast.features.history_frame, which training shares)."""
+
+    name = "coldchain-forecast"
+
+    def __init__(self, model: Any, config: dict[str, Any], version: str) -> None:
+        self.model, self.config, self.version = model, config, version
+        self.features: list[str] = config["features"]
+        self.horizon: int = config["horizon_days"]
+        self.min_history: int = config["min_history_days"]
+        self.max_history: int = config["max_history_days"]
+
+    @classmethod
+    def from_dir(cls, path: Path, version: str) -> ForecastModel:
+        import mlflow.lightgbm
+
+        config = json.loads((path / "serving_config.json").read_text(encoding="utf-8"))
+        return cls(mlflow.lightgbm.load_model(str(path)), config, version)
+
+    def forecast(self, histories: np.ndarray, as_of: pd.Timestamp) -> np.ndarray:
+        """(n_items, min_history) daily units ending on `as_of` -> (n_items, horizon), never negative."""
+        frame = history_frame(histories, as_of)
+        pred = self.model.predict(frame[self.features])
+        return np.clip(pred, 0, None).reshape(len(histories), self.horizon)

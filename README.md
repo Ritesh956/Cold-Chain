@@ -9,8 +9,8 @@ text classification, and an LLM assistant that answers from the platform's own d
 > (DistilBERT, ONNX int8), the model-serving API for all three, and the `core` service (ingest,
 > history, alerts with acknowledgement and an optional webhook, incident reports, shared-key auth, opt-in
 > retention), the drift monitor with a Prometheus/Grafana setup, and a live
-> dashboard (Next.js), plus a 28-day outflow forecast and item slotting tiers on real M5 retail data (evaluation
-> only: not served and not connected to `core`). **Not built yet:** computer vision (YOLO, tracking, OCR), the
+> dashboard (Next.js), plus a 28-day outflow forecast (served by the ml-api) and item slotting tiers (evaluation only) on real M5
+> retail data; neither is connected to `core`. **Not built yet:** computer vision (YOLO, tracking, OCR), the
 > LLM assistant, and any cloud deployment. The results table holds measured numbers only.
 
 Inspired by public descriptions of highly automated frozen warehouses. It is not affiliated
@@ -94,14 +94,14 @@ Every row has a baseline, a stated split and a model card or doc. Rows are added
 | Pipeline (`core`) | Simulated 7-day history through real NATS, TimescaleDB, Redis (CI) | n/a (plumbing) | Idempotent ingest, scorer that never skips minutes, alert state machine | Stored exactly once (also after republishing); alerts equal the offline expectation. On a real 22-min door fault: breach-risk warning 6 min before the crossing. | [doc](docs/core.md) |
 | Drift monitor | Synthetic zone-days (360), with injected sensor bias and compressor drift | n/a (statistics) | PSI on live inputs vs training reference; PSI on model scores vs early baseline | 1 of 272 anomaly-free days flagged; every injected shift (+0.5 C, current +10%, stuck compressor) flagged on 272 of 272. Easy case: low-noise synthetic data. | [doc](docs/monitor.md) |
 
-| Volume forecast (28 days, per item) | **Real** M5 FOODS sales, reframed as warehouse outflow (1,437 items, 4 rolling test blocks) | Seasonal mean of the last 4 weeks: WAPE 0.316 (seasonal naive 0.362, 28-day average 0.332) | Global LightGBM (one model, direct multi-horizon) | WAPE **0.285**: 0.031 lower than the best baseline (95% CI 0.026 to 0.037), better on 88% of items and at all 4 origins. Total daily outflow WAPE 0.053 vs 0.069. A modest gain; consecutive spring blocks only, point forecasts only, not served. | [card](docs/model-cards/forecast.md) |
+| Volume forecast (28 days, per item) | **Real** M5 FOODS sales, reframed as warehouse outflow (1,437 items, 4 rolling test blocks) | Seasonal mean of the last 4 weeks: WAPE 0.316 (seasonal naive 0.362, 28-day average 0.332) | Global LightGBM (one model, direct multi-horizon) | WAPE **0.285**: 0.031 lower than the best baseline (95% CI 0.026 to 0.037), better on 88% of items and at all 4 origins. Total daily outflow WAPE 0.053 vs 0.069. The variant served by the ml-api (sales history and date only) scores 0.297, and is level with the baseline on total outflow. A modest gain; consecutive spring blocks only, point forecasts only. | [card](docs/model-cards/forecast.md) |
 | Item slotting tiers | **Real** M5 FOODS sales, 1,355 items, two 52-week windows | ABC-XYZ rules: silhouette 0.13, year-over-year ARI 0.41 | k-means (k=5) | Silhouette 0.30 but **less stable than the rules** (ARI 0.31 vs 0.41). HDBSCAN found no clusters with the setting fixed in advance. Groups items only: no layout or pick-time outcome is modelled. | [card](docs/model-cards/slotting.md) |
 
 _Synthetic-data results measure fit to my simulator and generator, not real-world performance._
 
 ## Not done yet (so nobody has to guess)
 
-Serving the forecast and slotting models, an inbound or pallet-level forecast, prediction intervals, computer
+Connecting the forecast to `core` or the dashboard, serving the slotting tiers, an inbound or pallet-level forecast, prediction intervals, computer
 vision (detector, tracking, OCR, damaged-pallet classifier, RTSP worker), the LLM assistant, cloud deployment,
 real-text evaluation of the
 incident classes other than `safety`, and per-user authentication (the services take one shared API key; there
@@ -110,6 +110,6 @@ are no accounts).
 **Docker:** the full Compose stack (data plane, MLflow, ml-api, `core`, dashboard, simulator, monitor, Prometheus,
 Grafana) was run end to end once, on 2026-10-13: a simulated door fault produced the expected alerts on the
 dashboard and Grafana rendered. What that run showed, what it fixed (MinIO's images had been withdrawn, so the
-stack did not start) and what it did not cover (authentication, the webhook, retention, restarts) is
+stack did not start) and what it did not cover (webhook retries, a long soak, restarting the data plane mid-stream) is
 in [docs/docker-run.md](docs/docker-run.md). CI builds every image and runs the integration tests against real
 TimescaleDB, NATS and Redis, but does not start the stack.

@@ -13,6 +13,7 @@ early warning**, and an **incident-report classifier**. Code: `services/ml-api/`
 | POST | `/v1/anomaly/score` | Is this zone behaving abnormally right now? |
 | POST | `/v1/breach/predict` | Is this zone at risk of exceeding -18 C within 30 minutes? |
 | POST | `/v1/incidents/classify` | Which kind of incident is this free-text report (damage, temperature, delay, safety)? |
+| POST | `/v1/forecast/outflow` | How many units of each item will ship per day over the next 28 days? |
 | GET | `/v1/models` | Served model versions, thresholds and the metrics they were registered with |
 | GET | `/healthz`, `/readyz` | Liveness; readiness (models loaded) |
 | GET | `/metrics` | Prometheus |
@@ -78,6 +79,32 @@ report in the third row is answered with 0.99 confidence although it names two i
 over-confident on mixed reports. The model is **optional**: if it cannot be loaded the endpoint answers
 HTTP 503 `model_unavailable` while the other endpoints keep working.
 
+### Outflow forecast
+
+```json
+POST /v1/forecast/outflow
+{"as_of": "2016-05-22", "items": [{"item_id": "FOODS_1_001", "units": [4, 6, 5, ... 120 daily values ...]}]}
+```
+
+`units` is the item's daily units shipped, oldest first, **ending on `as_of`**; 90 to 400 days per item (only the
+latest 90 are used), up to 200 items per request, no negative or non-finite values (else HTTP 422 with a code such
+as `history_length` or `duplicate_item`). The answer has 28 `daily_units` per item starting on `as_of` + 1, and
+their sum. The model is the **history-and-calendar-only variant** of the forecaster (no price, event, SNAP, item
+age or department), so the request needs nothing but sales and a date; the full model, which also uses those,
+is about 4% better in WAPE and is not served. Real response for three M5 FOODS items, as of 2016-05-22:
+
+| Item | Forecast, next 28 days | The item's previous 28 days | First week (Mon to Sun) |
+|---|---|---|---|
+| FOODS_1_001 | 164.0 | 157.0 | 4.9, 5.0, 4.8, 4.5, 5.2, 6.1, 6.4 |
+| FOODS_1_002 | 121.6 | 131.0 | 4.0, 3.8, 3.5, 3.5, 3.8, 4.8, 4.4 |
+| FOODS_1_003 | 181.7 | 184.0 | 6.1, 5.6, 5.3, 5.6, 5.5, 6.6, 6.6 |
+
+That table shows the plumbing and the weekly shape, not accuracy (the registered model was trained through that
+last day). Accuracy is in the [model card](model-cards/forecast.md): WAPE 0.297 against 0.316 for the best
+baseline on four rolling test blocks. Point forecasts only, no intervals. The model is **optional**: without it
+the endpoint answers HTTP 503 `model_unavailable` and the rest keeps working. Serving builds its features with
+`coldchain_ml.forecast.features.history_frame`; a test asserts they equal the training features exactly.
+
 ## Design decisions (and why)
 
 - **Stateless scoring.** The caller owns the history and sends a window; the service holds no
@@ -127,6 +154,8 @@ Reproduce: `scripts/bench_ml_api.py`.
 | `/v1/anomaly/score` (500 readings) | 62 KB | 36 ms | 56 ms | 66 ms | 24 req/s |
 | `/v1/breach/predict` (1500 readings) | 185 KB | 98 ms | 109 ms | 115 ms | 9.6 req/s |
 
+- Forecast, measured inside the Compose container from the host (7 requests each, not the 200-request
+  benchmark): 1 item p50 26 ms; 50 items 51 ms; 200 items (the cap) 96 ms.
 - **It does not scale with threads.** With 4 concurrent clients throughput stays the same (24 and
   9.6 req/s) and latency quadruples: the work is pandas/NumPy under the GIL. Scale with processes
   or replicas. The platform needs 4 zones x 1 score/minute = about 0.07 req/s per site, so one worker has
@@ -153,6 +182,10 @@ uv run python -m coldchain_ml.registry.promote
 # see the reproduce steps in docs/model-cards/incident-nlp.md, ending with
 uv run python -m coldchain_ml.registry.promote_incident
 
+# the forecast model needs the M5 data (scripts/download_m5.py) and a finished forecast evaluation:
+uv run python -m coldchain_ml.forecast.run
+uv run python -m coldchain_ml.registry.promote_forecast
+
 # serve on http://127.0.0.1:8081
 uv run uvicorn coldchain_ml_api.app:create_app --factory --port 8081
 ```
@@ -178,6 +211,9 @@ it. **Not verified:** latency or throughput inside Compose.
 - The incident model's weights are not in the repository (`models/` is git-ignored). A fresh clone
   serves anomaly and breach after `promote`; the incident endpoint stays at 503 until the NLP
   artefacts are rebuilt (17 to 30 minutes of CPU training plus export).
+- The forecast is not connected to `core` or the dashboard, and the M5 data behind it is not in the
+  repository: a fresh clone serves it only after downloading M5 and running the two commands above.
+  Its request has no price or promotion input, so a planned promotion cannot be expressed.
 - Incident classification is connected to `core` (`POST /v1/incidents` classifies and stores a report; see
   [core.md](core.md)), but nothing alerts on a label.
 - Incident scoring is sequential: 60 reports take over a second.

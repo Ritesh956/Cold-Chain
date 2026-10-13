@@ -16,7 +16,7 @@ import json
 import re
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 from lightgbm import LGBMRegressor
@@ -24,7 +24,7 @@ from lightgbm import LGBMRegressor
 from coldchain_ml.common.tracking import start_run
 from coldchain_ml.forecast.baselines import BASELINES, HORIZON
 from coldchain_ml.forecast.data import Demand, load_demand
-from coldchain_ml.forecast.features import FEATURES, Context, origin_frame, training_frame
+from coldchain_ml.forecast.features import FEATURES, SERVED_FEATURES, Context, origin_frame, training_frame
 from coldchain_ml.forecast.metrics import bias, mase, naive_scale, rmse, wape
 
 VAL_ORIGIN = 1800
@@ -45,23 +45,28 @@ COMMON: dict[str, Any] = dict(
     reg_lambda=1.0, random_state=0, n_jobs=16, verbose=-1, force_row_wise=True,
 )  # fmt: skip
 CATEGORICAL = ["dept", "event_type"]
+FULL = "LightGBM (global)"
+SERVED = "LightGBM (history + calendar only)"  # the variant the ml-api serves: no price/event/SNAP/age/dept
 
 
-def fit(ctx: Context, last_origin: int, params: dict) -> LGBMRegressor:
+def fit(ctx: Context, last_origin: int, params: dict, features: list[str] = FEATURES) -> LGBMRegressor:
     tr = training_frame(ctx, last_origin)
     model = LGBMRegressor(**COMMON, **params)
-    model.fit(tr[FEATURES], tr["y"], categorical_feature=CATEGORICAL)
+    categorical: list[str] | Literal["auto"] = [c for c in CATEGORICAL if c in features] or "auto"
+    model.fit(tr[features], tr["y"], categorical_feature=categorical)
     return model
 
 
-def forecast_origin(ctx: Context, model: LGBMRegressor, o: int) -> dict:
+def forecast_origin(ctx: Context, models: dict[str, LGBMRegressor], o: int) -> dict:
     """Forecasts of every method for the items on sale at origin o, as (n_items, HORIZON) arrays."""
     d = ctx.d
     fr = origin_frame(ctx, o, True)
     items = np.sort(fr["item"].unique().astype(int))
-    pred = np.clip(model.predict(fr[FEATURES]), 0, None).reshape(len(items), HORIZON)
+    methods = {
+        name: np.clip(m.predict(fr[m.feature_name_]), 0, None).reshape(len(items), HORIZON)
+        for name, m in models.items()
+    }
     actual = fr["y"].to_numpy().reshape(len(items), HORIZON)
-    methods = {"LightGBM (global)": pred}
     for name, fn in BASELINES.items():
         methods[name] = fn(d.units, o)[items]
     return {"items": items, "actual": actual, "methods": methods, "mean90": ctx.window_mean(o, 90)[items]}
@@ -71,8 +76,8 @@ def evaluate_val(ctx: Context) -> dict:
     out = {}
     for name, params in CANDIDATES.items():
         t0 = time.time()
-        r = forecast_origin(ctx, fit(ctx, VAL_ORIGIN, params), VAL_ORIGIN)
-        w = wape(r["actual"], r["methods"]["LightGBM (global)"])
+        r = forecast_origin(ctx, {FULL: fit(ctx, VAL_ORIGIN, params)}, VAL_ORIGIN)
+        w = wape(r["actual"], r["methods"][FULL])
         out[name] = {"wape": w, "seconds": round(time.time() - t0)}
         print(f"  val {name:26s} WAPE {w:.4f}  ({out[name]['seconds']} s)", flush=True)
     return out
@@ -151,7 +156,7 @@ def paired_bootstrap(res: list[dict], a_name: str, b_name: str, n: int = 2000, s
 
 
 def to_markdown(summary: dict, val: dict, chosen: str, boot: dict, meta: dict, importance: list) -> str:
-    best_base = min((k for k in summary if k != "LightGBM (global)"), key=lambda k: summary[k]["wape"])
+    best_base = min((k for k in summary if k in BASELINES), key=lambda k: summary[k]["wape"])
     lines = [
         "# Volume forecast on M5 FOODS (real retail data, reframed as warehouse outflow)",
         "",
@@ -177,9 +182,16 @@ def to_markdown(summary: dict, val: dict, chosen: str, boot: dict, meta: dict, i
     d = boot[best_base]
     lines += [
         "",
-        f"LightGBM minus best baseline ({best_base}) in WAPE: {d['diff']:+.4f}, 95% CI "
+        f"LightGBM (global) minus best baseline ({best_base}) in WAPE: {d['diff']:+.4f}, 95% CI "
         f"[{d['ci95'][0]:+.4f}, {d['ci95'][1]:+.4f}] (items resampled, 2,000 draws); LightGBM has the lower "
         f"error on {d['share_items_a_better']:.0%} of items.",
+        "",
+        f"The history-and-calendar-only variant (the one the ml-api serves) minus the best baseline: "
+        f"{boot['served_vs_best_baseline']['diff']:+.4f}, 95% CI [{boot['served_vs_best_baseline']['ci95'][0]:+.4f}, "
+        f"{boot['served_vs_best_baseline']['ci95'][1]:+.4f}]. What the price, event, SNAP, item-age and department "
+        f"features add (global minus history-only): {boot['full_vs_served']['diff']:+.4f}, 95% CI "
+        f"[{boot['full_vs_served']['ci95'][0]:+.4f}, {boot['full_vs_served']['ci95'][1]:+.4f}]. Both variants use the "
+        "configuration chosen for the full model.",
         "",
         "WAPE per test origin: "
         + "; ".join(
@@ -268,20 +280,25 @@ def main() -> None:
         print(f"chosen on validation: {chosen}", flush=True)
 
         res: list[dict] = []
-        last_model: LGBMRegressor | None = None
+        last_models: dict[str, LGBMRegressor] = {}
         for o in origins:
-            last_model = fit(ctx, o, CANDIDATES[chosen])
-            res.append(forecast_origin(ctx, last_model, o))
+            last_models = {
+                FULL: fit(ctx, o, CANDIDATES[chosen]),
+                SERVED: fit(ctx, o, CANDIDATES[chosen], SERVED_FEATURES),
+            }
+            res.append(forecast_origin(ctx, last_models, o))
             print(
-                f"  origin {o}: LightGBM WAPE {wape(res[-1]['actual'], res[-1]['methods']['LightGBM (global)']):.4f}",
+                f"  origin {o}: WAPE full {wape(res[-1]['actual'], res[-1]['methods'][FULL]):.4f}, "
+                f"history-only {wape(res[-1]['actual'], res[-1]['methods'][SERVED]):.4f}",
                 flush=True,
             )
 
         summary = summarise(d, res, origins)
-        best_base = min((k for k in summary if k != "LightGBM (global)"), key=lambda k: summary[k]["wape"])
-        boot = {k: paired_bootstrap(res, "LightGBM (global)", k) for k in summary if k != "LightGBM (global)"}
-        assert last_model is not None
-        gain = last_model.booster_.feature_importance("gain")
+        best_base = min((k for k in summary if k in BASELINES), key=lambda k: summary[k]["wape"])
+        boot = {k: paired_bootstrap(res, FULL, k) for k in BASELINES}
+        boot["served_vs_best_baseline"] = paired_bootstrap(res, SERVED, best_base)
+        boot["full_vs_served"] = paired_bootstrap(res, FULL, SERVED)
+        gain = last_models[FULL].booster_.feature_importance("gain")
         order = np.argsort(gain)[::-1][:8]
         importance = [(FEATURES[i], float(gain[i] / gain.sum())) for i in order]
         meta = {

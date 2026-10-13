@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Literal
+from datetime import date, datetime
+from typing import Annotated, Literal
 
 from coldchain_ml.contract import MAX_HISTORY
 from pydantic import BaseModel, Field
@@ -86,3 +86,34 @@ class IncidentResponse(BaseModel):
     model: ModelRef
     review_below: float
     results: list[IncidentResult]
+
+
+Units = Annotated[float, Field(ge=0, le=1e9, allow_inf_nan=False)]
+
+
+class ItemHistory(BaseModel):
+    item_id: str = Field(min_length=1, max_length=64)
+    units: list[Units] = Field(
+        max_length=800,
+        description="Units shipped per day, oldest first, the last value being the day `as_of`. "
+        "At least the model's minimum history (see /v1/models); only the most recent 90 days are used.",
+    )
+
+
+class ForecastRequest(BaseModel):
+    as_of: date = Field(description="The day of the last value in every history")
+    items: list[ItemHistory] = Field(min_length=1, max_length=200)
+
+
+class ForecastItem(BaseModel):
+    item_id: str
+    daily_units: list[float] = Field(description="Forecast units per day for the next `horizon_days` days")
+    total_units: float
+
+
+class ForecastResponse(BaseModel):
+    model: ModelRef
+    as_of: date
+    first_day: date = Field(description="The first forecast day (as_of + 1)")
+    horizon_days: int
+    items: list[ForecastItem]

@@ -25,6 +25,25 @@ FEATURES = [
 ]  # fmt: skip
 
 
+# What a caller can supply with nothing but the item's own sales history and a date. The served model uses
+# only these; the full model also gets the shelf price, SNAP days, events, item age and department.
+SERVED_FEATURES = [
+    f
+    for f in FEATURES
+    if f
+    not in {
+        "snap_share",
+        "event",
+        "event_type",
+        "price",
+        "price_vs_origin",
+        "price_vs_year",
+        "age_days",
+        "dept",
+    }
+]
+
+
 class Context:
     """Per-item running sums computed once, so any origin's windows are O(items)."""
 
@@ -116,3 +135,40 @@ def training_frame(ctx: Context, last_origin: int, window: int = 730, stride: in
     newest = last_origin - HORIZON
     origins = range(newest, max(MIN_ORIGIN, newest - window) - 1, -stride)
     return pd.concat([origin_frame(ctx, s, True) for s in origins], ignore_index=True)
+
+
+def history_frame(history: np.ndarray, as_of: pd.Timestamp | str) -> pd.DataFrame:
+    """SERVED_FEATURES for (n_items, L >= 90) daily units whose last column is the day `as_of`.
+
+    Same numbers as `origin_frame` computes for those columns (a test checks this), but from the raw history
+    alone, so it can run in a service that has no M5 tables. Rows are item-major, HORIZON per item."""
+    y = np.asarray(history, dtype=np.float64)
+    n, length = y.shape
+    if length < MIN_ORIGIN:
+        raise ValueError(f"need at least {MIN_ORIGIN} days of history, got {length}")
+    o = length - 1
+    h = np.arange(1, HORIZON + 1)
+    day = pd.Timestamp(as_of).normalize() + pd.to_timedelta(h, unit="D")
+
+    m = {w: y[:, length - w :].mean(axis=1) for w in (7, 14, 28, 56, 90)}
+    base = -(-h // 7)
+    swd = [y[:, o + h - 7 * (base + k - 1)] for k in range(1, 5)]
+
+    def per_item(a: np.ndarray) -> np.ndarray:
+        return np.repeat(a[:, None], HORIZON, axis=1)
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        cols = {
+            "h": np.tile(h, (n, 1)),
+            "dow": np.tile(day.dayofweek.to_numpy(), (n, 1)),
+            "dom": np.tile(day.day.to_numpy(), (n, 1)),
+            "month": np.tile(day.month.to_numpy(), (n, 1)),
+            "mean7": per_item(m[7]), "mean14": per_item(m[14]), "mean28": per_item(m[28]),
+            "mean56": per_item(m[56]), "mean90": per_item(m[90]),
+            "std28": per_item(y[:, length - 28 :].std(axis=1)),
+            "zero28": per_item((y[:, length - 28 :] == 0).mean(axis=1)),
+            "ratio7_28": per_item(m[7] / m[28]), "ratio28_90": per_item(m[28] / m[90]),
+            "swd1": swd[0], "swd2": swd[1], "swd3": swd[2], "swd4": swd[3], "swd_mean": np.mean(swd, axis=0),
+        }  # fmt: skip
+    frame = pd.DataFrame({k: v.ravel() for k, v in cols.items()}).astype("float32")
+    return frame.replace([np.inf, -np.inf], np.nan)[SERVED_FEATURES]

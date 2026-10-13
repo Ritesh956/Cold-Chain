@@ -12,7 +12,7 @@ from coldchain_ml.nlp.serving import IncidentModel
 from mlflow import MlflowClient
 
 from coldchain_ml_api.config import Settings
-from coldchain_ml_api.models import AnomalyModel, BreachModel
+from coldchain_ml_api.models import AnomalyModel, BreachModel, ForecastModel
 
 log = logging.getLogger("coldchain_ml_api")
 
@@ -30,9 +30,13 @@ def _fetch(uri: str) -> tuple[Path, str]:
 
 class Models:
     def __init__(
-        self, anomaly: AnomalyModel, breach: BreachModel, incident: IncidentModel | None = None
+        self,
+        anomaly: AnomalyModel,
+        breach: BreachModel,
+        incident: IncidentModel | None = None,
+        forecast: ForecastModel | None = None,
     ) -> None:
-        self.anomaly, self.breach, self.incident = anomaly, breach, incident
+        self.anomaly, self.breach, self.incident, self.forecast = anomaly, breach, incident, forecast
 
     @classmethod
     def load(cls, settings: Settings) -> Models:
@@ -45,4 +49,12 @@ class Models:
             incident = IncidentModel.from_dir(i_dir, i_ver)
         except Exception as e:  # optional model: log and carry on without it
             log.warning("incident model not loaded (%s); /v1/incidents/classify will return 503", e)
-        return cls(AnomalyModel.from_dir(a_dir, a_ver), BreachModel.from_dir(b_dir, b_ver), incident)
+        forecast = None
+        try:
+            f_dir, f_ver = _fetch(settings.forecast_model_uri)
+            forecast = ForecastModel.from_dir(f_dir, f_ver)
+        except Exception as e:  # optional model: log and carry on without it
+            log.warning("forecast model not loaded (%s); /v1/forecast/outflow will return 503", e)
+        return cls(
+            AnomalyModel.from_dir(a_dir, a_ver), BreachModel.from_dir(b_dir, b_ver), incident, forecast
+        )
